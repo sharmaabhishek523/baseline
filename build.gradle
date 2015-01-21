@@ -1,0 +1,190 @@
+/*
+ * Copyright 2015 Air Computing Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//
+// the following properties must be set in your gradle.properties
+//
+// currentVersion
+// mavenPublishUser
+// mavenPublishPass
+// mavenPublishReleasesRepo
+// mavenPublishSnapshotRepo
+
+allprojects {
+    group = 'com.aerofs.baseline'
+    version = currentVersion
+}
+
+ext {
+    mavenPublishUser = 'bogus'
+    mavenPublishPass = 'bogus'
+
+    isReleaseVersion = !version.endsWith('SNAPSHOT')
+    mavenPublishRepo = "${isReleaseVersion ? mavenPublishReleasesRepo : mavenPublishSnapshotRepo}"
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    compileJava.options.compilerArgs << '-Werror'
+    compileJava.options.compilerArgs << '-Xlint:all'
+
+    compileTestJava.options.compilerArgs << '-Werror'
+    compileTestJava.options.compilerArgs << '-Xlint:all'
+
+    repositories {
+        mavenCentral()
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group.contains('com.fasterxml.jackson')) {
+                    details.useVersion '2.4.+'
+                }
+
+                if (details.requested.group.contains('com.codahale.metrics')) {
+                    details.useVersion '3.0.+'
+                }
+
+                if (details.requested.group.contains('com.google.guava')) {
+                    details.useVersion '17.+'
+                }
+
+                if (details.requested.group == 'org.slf4j') {
+                    details.useVersion '1.7.+'
+                }
+
+                if (details.requested.group == 'ch.qos.logback') {
+                    details.useVersion '1.1.+'
+                }
+            }
+        }
+    }
+
+    publishing {
+        repositories {
+            maven {
+                url "${mavenPublishRepo}"
+                credentials {
+                    username mavenPublishUser
+                    password mavenPublishPass
+                }
+            }
+        }
+
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId "baseline-${project.name}"
+
+                from components.java
+
+                artifact srcJar {
+                    classifier 'sources'
+                }
+
+                artifact docJar {
+                    classifier 'javadoc'
+                }
+
+                pom.withXml {
+                    def root = asNode()
+
+                    root.appendNode('description', 'baseline: JAX-RS java web-services framework')
+                    root.appendNode('url', 'https://github.com/aerofs/baseline')
+                    root.appendNode('inceptionYear', '2015')
+                    root.appendNode('packaging', 'jar')
+
+                    def scm = root.appendNode('scm')
+                    scm.appendNode('url', 'https://github.com/aerofs/baseline.git')
+                    scm.appendNode('connection', 'scm:git:https://github.com/aerofs/baseline.git')
+
+                    def license = root.appendNode('licenses').appendNode('license')
+                    license.appendNode('name', 'The Apache Software License, Version 2.0')
+                    license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                    license.appendNode('distribution', 'repo')
+
+                    def developer = root.appendNode('developers').appendNode('developer')
+                    developer.appendNode('id', 'allengeorge')
+                    developer.appendNode('name', 'Allen George')
+                }
+            }
+        }
+    }
+
+    test {
+        ignoreFailures = true
+        maxHeapSize '512m'
+        testLogging.showStandardStreams = true
+        outputs.upToDateWhen { false }
+    }
+
+    task dist(type: Copy, description: "Assemble all runtime dependencies for ${name}") {
+        from configurations.runtime
+        from jar
+        into "${buildDir}/dist"
+    }
+
+    task srcJar(type: Jar, description: 'Assemble jar containing sources') {
+        from sourceSets.main.allJava
+        classifier = 'sources'
+    }
+
+    task docJar(type: Jar, description: 'Assemble jar containing javadoc', dependsOn: javadoc) {
+        from "$docsDir"
+        classifier = 'javadoc'
+    }
+
+    artifacts {
+        archives srcJar, docJar
+    }
+
+    signing {
+        // required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+        required false
+        sign configurations.archives
+    }
+}
+
+//
+// code copied verbatim from http://github.com/allengeorge/libraft/build.gradle
+//
+// signing key pass-phrase input
+//
+// read signing-key pass-phrase from console instead of sourcing it from gradle properties
+// this code copied from http://www.gradle.org/docs/current/userguide/signing_plugin.html
+// will not work in an automated environment (but nbd, because releases are not automated)
+//
+// assumes that two other properties are set:
+// signing.keyId
+// signing.secretKeyRingFile
+//
+
+// import org.gradle.plugins.signing.Sign
+//
+// gradle.taskGraph.whenReady { taskGraph ->
+//     if (taskGraph.allTasks.any { it instanceof Sign } && isReleaseVersion) {
+//         Console console = System.console()
+//         console.printf "\n\n${version} Release: Signing Artifacts.\n".toString()
+//         def signingKeyPassword = console.readPassword("PGP Private Key Password: ")
+//         allprojects { ext."signing.password" = signingKeyPassword }
+//     }
+// }
