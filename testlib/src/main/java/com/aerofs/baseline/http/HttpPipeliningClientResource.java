@@ -16,7 +16,6 @@
 
 package com.aerofs.baseline.http;
 
-import com.aerofs.baseline.http.HttpClientResource;
 import org.apache.http.impl.nio.client.CloseableHttpPipeliningClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.junit.rules.ExternalResource;

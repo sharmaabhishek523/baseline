@@ -17,11 +17,11 @@
 package com.aerofs.baseline.admin;
 
 import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.http.HttpClientResource;
 import com.aerofs.baseline.RootEnvironment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
 import com.aerofs.baseline.ServiceEnvironment;
+import com.aerofs.baseline.http.HttpClientResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.common.collect.ImmutableMap;

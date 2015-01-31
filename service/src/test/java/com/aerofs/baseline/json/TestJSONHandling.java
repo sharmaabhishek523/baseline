@@ -17,12 +17,12 @@
 package com.aerofs.baseline.json;
 
 import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.http.HttpClientResource;
-import com.aerofs.baseline.http.HttpUtils;
 import com.aerofs.baseline.RootEnvironment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
 import com.aerofs.baseline.ServiceEnvironment;
+import com.aerofs.baseline.http.HttpClientResource;
+import com.aerofs.baseline.http.HttpUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;

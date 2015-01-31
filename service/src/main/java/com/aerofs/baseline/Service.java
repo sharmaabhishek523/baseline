@@ -16,12 +16,10 @@
 
 package com.aerofs.baseline;
 
+import com.aerofs.baseline.auth.AuthenticationExceptionMapper;
 import com.aerofs.baseline.auth.AuthenticationFilter;
 import com.aerofs.baseline.auth.Authenticators;
 import com.aerofs.baseline.config.Configuration;
-import com.aerofs.baseline.errors.ConstraintViolationExceptionMapper;
-import com.aerofs.baseline.errors.DefaultExceptionMapper;
-import com.aerofs.baseline.errors.IllegalArgumentExceptionMapper;
 import com.aerofs.baseline.http.HttpConfiguration;
 import com.aerofs.baseline.http.HttpServer;
 import com.aerofs.baseline.json.JsonProcessingExceptionMapper;
@@ -227,6 +225,7 @@ public abstract class Service<T extends Configuration> {
 
         // add exception mappers
         environment.getResourceConfig().register(DefaultExceptionMapper.class);
+        environment.getResourceConfig().register(AuthenticationExceptionMapper.class);
         environment.getResourceConfig().register(IllegalArgumentExceptionMapper.class);
         environment.getResourceConfig().register(JsonProcessingExceptionMapper.class);
         environment.getResourceConfig().register(ConstraintViolationExceptionMapper.class);

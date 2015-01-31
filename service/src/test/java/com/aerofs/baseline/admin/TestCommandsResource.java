@@ -17,8 +17,6 @@
 package com.aerofs.baseline.admin;
 
 import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.http.HttpClientResource;
-import com.aerofs.baseline.http.HttpUtils;
 import com.aerofs.baseline.RootEnvironment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
@@ -26,6 +24,8 @@ import com.aerofs.baseline.ServiceEnvironment;
 import com.aerofs.baseline.errors.BaseExceptionMapper;
 import com.aerofs.baseline.errors.BaselineError;
 import com.aerofs.baseline.errors.ServiceError;
+import com.aerofs.baseline.http.HttpClientResource;
+import com.aerofs.baseline.http.HttpUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;

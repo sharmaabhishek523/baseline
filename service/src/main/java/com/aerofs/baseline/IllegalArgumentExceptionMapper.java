@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package com.aerofs.baseline.errors;
+package com.aerofs.baseline;
+
+import com.aerofs.baseline.errors.BaseExceptionMapper;
+import com.aerofs.baseline.errors.BaselineError;
 
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;

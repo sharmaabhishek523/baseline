@@ -65,30 +65,18 @@ public final class RootEnvironment {
         authenticators.add(authenticator);
     }
 
-    /**
-     * @return baseline-wide javax Validator (shared between admin and service)
-     */
     public Validator getValidator() {
         return validator;
     }
 
-    /**
-     * @return baseline-wide Jackson JSON object mapper (shared between admin and service)
-     */
     public ObjectMapper getMapper() {
         return mapper;
     }
 
-    /**
-     * @return baseline-wide scheduled executor instance (shared between admin and service)
-     */
     public ScheduledExecutorService getScheduledExecutorService() {
         return lifecycle.getScheduledExecutorService();
     }
 
-    /**
-     * @return baseline-wide timer instance (shared between admin and service)
-     */
     public Timer getTimer() {
         return lifecycle.getTimer();
     }
