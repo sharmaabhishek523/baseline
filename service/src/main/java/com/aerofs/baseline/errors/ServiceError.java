@@ -19,11 +19,13 @@ package com.aerofs.baseline.errors;
 import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * JSON object representation of an error returned by baseline.
  */
 @SuppressWarnings("unused")
+@NotThreadSafe
 public final class ServiceError {
 
     private int errorCode;

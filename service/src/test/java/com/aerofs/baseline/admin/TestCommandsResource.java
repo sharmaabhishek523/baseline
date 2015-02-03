@@ -16,11 +16,9 @@
 
 package com.aerofs.baseline.admin;
 
-import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
-import com.aerofs.baseline.ServiceEnvironment;
 import com.aerofs.baseline.errors.BaseExceptionMapper;
 import com.aerofs.baseline.errors.BaselineError;
 import com.aerofs.baseline.errors.ServiceError;
@@ -33,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -86,7 +85,6 @@ public final class TestCommandsResource {
         }
     }
 
-
     //
     // instance variables
     //
@@ -96,11 +94,33 @@ public final class TestCommandsResource {
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
     }
 
+    private final BaseExceptionMapper<RuntimeException> replacementRuntimeExceptionMapper = new BaseExceptionMapper<RuntimeException>(BaseExceptionMapper.ErrorResponseEntity.NO_STACK_IN_RESPONSE, BaseExceptionMapper.StackLogging.DISABLE_LOGGING) {
+        @Override
+        protected int getErrorCode(RuntimeException throwable) {
+            return 777;
+        }
+
+        @Override
+        protected String getErrorName(RuntimeException throwable) {
+            return "CUSTOM";
+        }
+
+        @Override
+        protected String getErrorText(RuntimeException throwable) {
+            return "BAD_COMMAND";
+        }
+
+        @Override
+        protected Response.Status getHttpResponseStatus(RuntimeException throwable) {
+            return Response.Status.SERVICE_UNAVAILABLE;
+        }
+    };
+
     @Rule
     public final HttpClientResource client = new HttpClientResource();
 
     //
-    // applies to any command
+    // user-specified commands
     //
 
     @Test
@@ -108,8 +128,14 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-                admin.registerCommand("cmd", SuccessfulNonEmptyEntityCommand.class);
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", SuccessfulNonEmptyEntityCommand.class);
+                environment.addAdminProvider(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(SuccessfulNonEmptyEntityCommand.class).to(SuccessfulNonEmptyEntityCommand.class);
+                    }
+                });
             }
         };
 
@@ -135,8 +161,14 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-                admin.registerCommand("cmd", SuccessfulJsonEntityCommand.class);
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", SuccessfulJsonEntityCommand.class);
+                environment.addAdminProvider(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(SuccessfulJsonEntityCommand.class).to(SuccessfulJsonEntityCommand.class);
+                    }
+                });
             }
         };
 
@@ -173,8 +205,14 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-                admin.registerCommand("cmd", SuccessfulJsonEntityCommand.class);
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", SuccessfulJsonEntityCommand.class);
+                environment.addAdminProvider(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(SuccessfulJsonEntityCommand.class).to(SuccessfulJsonEntityCommand.class);
+                    }
+                });
             }
         };
 
@@ -211,8 +249,14 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-                admin.registerCommand("cmd", SuccessfulEmptyEntityCommand.class);
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", SuccessfulEmptyEntityCommand.class);
+                environment.addAdminProvider(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(SuccessfulEmptyEntityCommand.class).to(SuccessfulEmptyEntityCommand.class);
+                    }
+                });
             }
         };
 
@@ -238,31 +282,17 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-                admin.registerCommand("cmd", ExceptionThrowingCommand.class);
-
-                // set an exception mapper for runtime exceptions
-                admin.addProvider(new BaseExceptionMapper<RuntimeException>(BaseExceptionMapper.ErrorResponseEntity.NO_STACK_IN_RESPONSE, BaseExceptionMapper.StackLogging.DISABLE_LOGGING) {
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", ExceptionThrowingCommand.class);
+                environment.addAdminProvider(new AbstractBinder() {
                     @Override
-                    protected int getErrorCode(RuntimeException throwable) {
-                        return 777;
-                    }
-
-                    @Override
-                    protected String getErrorName(RuntimeException throwable) {
-                        return "CUSTOM";
-                    }
-
-                    @Override
-                    protected String getErrorText(RuntimeException throwable) {
-                        return "BAD_COMMAND";
-                    }
-
-                    @Override
-                    protected Response.Status getHttpResponseStatus(RuntimeException throwable) {
-                        return Response.Status.SERVICE_UNAVAILABLE;
+                    protected void configure() {
+                        bind(ExceptionThrowingCommand.class).to(ExceptionThrowingCommand.class);
                     }
                 });
+
+                // set an exception mapper for runtime exceptions
+                environment.addAdminProvider(replacementRuntimeExceptionMapper);
             }
         };
 
@@ -300,8 +330,14 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-                admin.registerCommand("cmd", ExceptionThrowingCommand.class);
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", ExceptionThrowingCommand.class);
+                environment.addAdminProvider(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(ExceptionThrowingCommand.class).to(ExceptionThrowingCommand.class);
+                    }
+                });
             }
         };
 
@@ -335,6 +371,131 @@ public final class TestCommandsResource {
     }
 
     //
+    // check that we can run commands registered as instances
+    // and that we can mix and match hk2-bound commands as well as instance commands
+    //
+
+    @Test
+    public void shouldReturn_HTTP_OK_WithNonEmptyEntityWhenCommandInstanceExecuted() throws Exception {
+        Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
+
+            @Override
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd", new SuccessfulNonEmptyEntityCommand());
+            }
+        };
+
+        try {
+            // setup the server
+            service.runWithConfiguration(ServiceConfiguration.TEST_CONFIGURATION);
+
+            // attempt to execute the command
+            HttpPost post = new HttpPost(ServiceConfiguration.ADMIN_URL + "/commands/cmd");
+            Future<HttpResponse> future = client.getClient().execute(post, null);
+            HttpResponse response = future.get();
+
+            // verify the result
+            assertThat(response.getStatusLine().getStatusCode(), equalTo(HttpStatus.SC_OK));
+            assertThat(HttpUtils.readResponseEntityToString(response), equalTo("EXECUTED"));
+        }  finally {
+            service.shutdown();
+        }
+    }
+
+    @Test
+    public void shouldReturn_HTTP_OK_WithNonEmptyEntityWhenCommandInstanceExecuted_And_Return_HTTP_OK_WithEmptyEntityWhenSecondCommandExecuted() throws Exception {
+        Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
+
+            @Override
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                environment.registerCommand("cmd0", new SuccessfulNonEmptyEntityCommand()); // registered as instance
+                environment.registerCommand("cmd1", SuccessfulEmptyEntityCommand.class); // registered as class; bound w/ hk2
+                environment.addAdminProvider(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(SuccessfulEmptyEntityCommand.class).to(SuccessfulEmptyEntityCommand.class);
+                    }
+                });
+            }
+        };
+
+        try {
+            // setup the server
+            service.runWithConfiguration(ServiceConfiguration.TEST_CONFIGURATION);
+
+            //
+            // instance command
+            //
+
+            // attempt to execute the command
+            HttpPost post0 = new HttpPost(ServiceConfiguration.ADMIN_URL + "/commands/cmd0");
+            Future<HttpResponse> future0 = client.getClient().execute(post0, null);
+            HttpResponse response0 = future0.get();
+
+            // verify the result
+            assertThat(response0.getStatusLine().getStatusCode(), equalTo(HttpStatus.SC_OK));
+            assertThat(HttpUtils.readResponseEntityToString(response0), equalTo("EXECUTED"));
+
+            //
+            // hk2 bound command
+            //
+
+            // attempt to execute the command
+            HttpPost post1 = new HttpPost(ServiceConfiguration.ADMIN_URL + "/commands/cmd1");
+            Future<HttpResponse> future1 = client.getClient().execute(post1, null);
+            HttpResponse response1 = future1.get();
+
+            // verify the result
+            assertThat(response1.getStatusLine().getStatusCode(), equalTo(HttpStatus.SC_OK));
+            assertThat(response1.getEntity().getContentLength(), equalTo(0L));
+        }  finally {
+            service.shutdown();
+        }
+    }
+
+    @Test
+    public void shouldReturn_HTTP_SERVICE_UNAVAILABLE_WithCustomMessageAndCustomErrorCodeWhenFailingCommandInstanceExecuted() throws Exception {
+        Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
+
+            @Override
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+                // register a command
+                environment.registerCommand("cmd", new ExceptionThrowingCommand());
+                // set an exception mapper for runtime exceptions
+                environment.addAdminProvider(replacementRuntimeExceptionMapper);
+            }
+        };
+
+        try {
+            // setup the server
+            service.runWithConfiguration(ServiceConfiguration.TEST_CONFIGURATION);
+
+            // attempt to execute the command
+            HttpPost post = new HttpPost(ServiceConfiguration.ADMIN_URL + "/commands/cmd");
+            Future<HttpResponse> future = client.getClient().execute(post, null);
+            HttpResponse response = future.get();
+
+            // verify the result
+            assertThat(response.getStatusLine().getStatusCode(), equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
+
+            // this is the result we expect
+            ServiceError expected = new ServiceError();
+            expected.setErrorCode(777);
+            expected.setErrorName("CUSTOM");
+            expected.setErrorType("RuntimeException"); // exception type
+            expected.setErrorText("BAD_COMMAND");
+
+            // convert it into json
+            ServiceError returned = mapper.readValue(response.getEntity().getContent(), ServiceError.class);
+
+            // check the result
+            assertThat(returned, equalTo(expected));
+        }  finally {
+            service.shutdown();
+        }
+    }
+
+    //
     // applies to the two bundled commands
     //
 
@@ -343,7 +504,7 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
                 // don't register anything beyond the defaults
             }
         };
@@ -371,7 +532,7 @@ public final class TestCommandsResource {
         Service<ServiceConfiguration> service = new Service<ServiceConfiguration>("test") {
 
             @Override
-            public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
+            public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
                 // don't register anything beyond the defaults
             }
         };

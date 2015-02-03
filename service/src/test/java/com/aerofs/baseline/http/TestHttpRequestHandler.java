@@ -16,11 +16,9 @@
 
 package com.aerofs.baseline.http;
 
-import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
-import com.aerofs.baseline.ServiceEnvironment;
 import com.google.common.net.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -57,15 +55,15 @@ public final class TestHttpRequestHandler {
         // unused resources will *not* interfere with the used resources (they are independent)
 
         @Override
-        public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-            service.addResource(BasicResource.class);
-            service.addResource(EmptyEntityResource.class);
-            service.addResource(ChunkedDownloadResource.class);
-            service.addResource(ChunkedUploadResource.class);
-            service.addResource(HandsOnChunkedUploadResource.class);
-            service.addResource(PollingResource.class);
-            service.addResource(ThrowingResource.class);
-            service.addResource(TimeoutResource.class);
+        public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+            environment.addResource(BasicResource.class);
+            environment.addResource(EmptyEntityResource.class);
+            environment.addResource(ChunkedDownloadResource.class);
+            environment.addResource(ChunkedUploadResource.class);
+            environment.addResource(HandsOnChunkedUploadResource.class);
+            environment.addResource(PollingResource.class);
+            environment.addResource(ThrowingResource.class);
+            environment.addResource(TimeoutResource.class);
         }
     };
 

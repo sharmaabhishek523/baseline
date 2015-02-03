@@ -22,11 +22,13 @@ import com.google.common.collect.Lists;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @SuppressWarnings("unused")
+@NotThreadSafe
 public final class LoggingConfiguration {
 
     @NotBlank

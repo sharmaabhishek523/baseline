@@ -16,17 +16,17 @@
 
 package com.aerofs.baseline.admin;
 
-import com.aerofs.baseline.RootEnvironment;
-import com.google.common.collect.ImmutableMap;
+import com.aerofs.baseline.Constants;
+import org.glassfish.hk2.api.ServiceHandle;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Map;
@@ -37,7 +37,7 @@ import java.util.Map;
  * <p>
  * A baseline service may implement zero or more health checks,
  * each of which checks the condition of one or more service
- * components. Each health check returns a {@link HealthCheckStatus.Status}
+ * components. Each health check returns a {@link Status.Value}
  * of {@code SUCCESS} or {@code FAILURE}. If all implemented checks
  * return {@code SUCCESS} an HTTP response with status code {@code 200}
  * is returned. If <strong>any</strong> health check returns
@@ -55,52 +55,50 @@ import java.util.Map;
  *     curl http://service_url:service_admin_port/status
  * </pre>
  */
-@Path("/status")
-@Singleton
+@Path(Constants.HEALTH_CHECK_RESOURCE_PATH)
 @ThreadSafe
+@Singleton
 public final class HealthCheckResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckResource.class);
 
-    private final RootEnvironment root;
-    private final ImmutableMap<String, Class<HealthCheck>> healthChecks;
+    private final ServiceLocator locator;
+    private final RegisteredHealthChecks healthChecks;
 
-    // unfortunately I have to use a raw ImmutableMap as
-    // a constructor parameter because as far as I understand
-    // CDI does not allow you to inject bounded types
-    // see http://stackoverflow.com/questions/23992714/how-to-inject-an-unbound-generic-type-in-hk2
-    @SuppressWarnings({"rawtypes", "unchecked", "unused"})
-    @Inject
-    private HealthCheckResource(RootEnvironment root, @Named("healthChecks") ImmutableMap healthChecks) {
-        this.root = root;
+    private HealthCheckResource(@Context ServiceLocator locator, @Context RegisteredHealthChecks healthChecks) {
+        this.locator = locator;
         this.healthChecks = healthChecks;
     }
 
+    @SuppressWarnings("unchecked")
     @GET
     public Response getStatus() {
-        if (healthChecks.isEmpty()) {
+        if (!healthChecks.hasHealthChecks()) {
             return Response.status(Response.Status.NOT_IMPLEMENTED).build();
         }
 
         boolean allSucceeded = true;
         ServiceStatus serviceStatus = new ServiceStatus();
 
-        for (Map.Entry<String, Class<HealthCheck>> entry: healthChecks.entrySet()) {
+        for (Map.Entry<String, Object> entry: healthChecks.getRegistrations()) {
             String name = entry.getKey();
+
             try {
-                HealthCheck healthCheck = root.getOrCreateInstance(entry.getValue());
+                boolean successful;
 
-                HealthCheckStatus status = healthCheck.check();
-                LOGGER.debug("executed \"{}\" with status {}", name, status.getStatus());
+                if (entry.getValue() instanceof HealthCheck) {
+                    successful = executeHealthCheck(name, (HealthCheck) entry.getValue(), serviceStatus);
+                } else {
+                    successful= loadClassAndExecuteHealthCheck(name, (Class) entry.getValue(), serviceStatus);
+                }
 
-                serviceStatus.addStatus(name, status);
-                if (status.getStatus() != HealthCheckStatus.Status.SUCCESS) {
+                if (!successful) {
                     allSucceeded = false;
                 }
             } catch (Exception e) {
                 LOGGER.error("failed while executing \"{}\"", name, e);
                 allSucceeded = false;
-                serviceStatus.addStatus(name, HealthCheckStatus.failure(e.getMessage()));
+                serviceStatus.addStatus(name, Status.failure(e.getMessage()));
             }
         }
 
@@ -109,5 +107,28 @@ public final class HealthCheckResource {
                 .type(MediaType.APPLICATION_JSON)
                 .entity(serviceStatus)
                 .build();
+    }
+
+    private boolean loadClassAndExecuteHealthCheck(String name, Class<? extends HealthCheck> healthCheckClass, ServiceStatus serviceStatus) {
+        ServiceHandle<? extends HealthCheck> handle = null;
+        try {
+            // find and execute the health check
+            handle = locator.getServiceHandle(healthCheckClass);
+            HealthCheck healthCheck = handle.getService();
+            return executeHealthCheck(name, healthCheck, serviceStatus);
+        } finally {
+            // destroy the created object if it's not a singleton
+            if (handle != null && handle.getActiveDescriptor().getScopeAnnotation() != Singleton.class) {
+                handle.destroy();
+            }
+        }
+    }
+
+    private boolean executeHealthCheck(String name, HealthCheck healthCheck, ServiceStatus serviceStatus) {
+        Status status = healthCheck.check();
+        LOGGER.debug("executed \"{}\" with status {}", name, status.getValue());
+
+        serviceStatus.addStatus(name, status);
+        return status.getValue() == Status.Value.SUCCESS;
     }
 }

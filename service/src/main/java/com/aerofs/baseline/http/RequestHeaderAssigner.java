@@ -23,8 +23,10 @@ import io.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Random;
 
+@ThreadSafe
 @ChannelHandler.Sharable
 final class RequestHeaderAssigner extends ChannelInboundHandlerAdapter {
 

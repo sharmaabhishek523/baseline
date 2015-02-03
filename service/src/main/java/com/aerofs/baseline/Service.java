@@ -16,11 +16,16 @@
 
 package com.aerofs.baseline;
 
+import com.aerofs.baseline.admin.CommandsResource;
+import com.aerofs.baseline.admin.HealthCheckResource;
+import com.aerofs.baseline.admin.InvalidCommandExceptionMapper;
+import com.aerofs.baseline.admin.RegisteredCommands;
+import com.aerofs.baseline.admin.RegisteredHealthChecks;
 import com.aerofs.baseline.auth.AuthenticationExceptionMapper;
 import com.aerofs.baseline.auth.AuthenticationFilter;
 import com.aerofs.baseline.auth.Authenticators;
 import com.aerofs.baseline.config.Configuration;
-import com.aerofs.baseline.http.HttpConfiguration;
+import com.aerofs.baseline.config.ConfigurationBinder;
 import com.aerofs.baseline.http.HttpServer;
 import com.aerofs.baseline.json.JsonProcessingExceptionMapper;
 import com.aerofs.baseline.json.ValidatingJacksonJaxbJsonProvider;
@@ -37,13 +42,16 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import io.netty.util.Timer;
 import org.glassfish.hk2.api.ActiveDescriptor;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.ServiceLocatorFactory;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.server.ApplicationHandler;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.hibernate.validator.HibernateValidator;
@@ -51,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Singleton;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -65,7 +74,7 @@ public abstract class Service<T extends Configuration> {
     protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     private final AtomicReference<ServiceLocator> rootLocatorReference = new AtomicReference<>(null);
-    private final AtomicReference<LifecycleManager> lifecycleReference = new AtomicReference<>(null);
+    private final AtomicReference<LifecycleManager> lifecycleManagerReference = new AtomicReference<>(null);
     private final String name;
 
     protected Service(String name) {
@@ -128,7 +137,7 @@ public abstract class Service<T extends Configuration> {
         // reset the logging subsystem with the configured levels
         Logging.setupLogging(configuration.getLogging());
 
-        // display the server banner
+        // display the server banner if it exists
         displayBanner();
 
         // add a shutdown hook to release all resources cleanly
@@ -144,15 +153,12 @@ public abstract class Service<T extends Configuration> {
         ServiceLocator rootLocator = ServiceLocatorFactory.getInstance().create("root");
         rootLocatorReference.set(rootLocator);
 
-        // grab a reference to our system-wide class loader
+        // grab a reference to our system-wide class loader (we'll use this for the jersey service locators)
         ClassLoader classLoader = rootLocator.getClass().getClassLoader();
 
-        // no one accesses the locator directly - they go through the injector
-        Injector injector = new Injector(rootLocator);
-
         // create the lifecycle manager
-        LifecycleManager lifecycle = new LifecycleManager();
-        lifecycleReference.set(lifecycle);
+        LifecycleManager lifecycleManager = new LifecycleManager(rootLocator);
+        lifecycleManagerReference.set(lifecycleManager);
 
         // after this point any services
         // added to the LifecycleManager will be
@@ -163,86 +169,117 @@ public abstract class Service<T extends Configuration> {
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
 
-        // create container for user-specified set of request authenticators
+        // create a few singleton objects
         Authenticators authenticators = new Authenticators();
+        RegisteredCommands registeredCommands = new RegisteredCommands();
+        RegisteredHealthChecks registeredHealthChecks = new RegisteredHealthChecks();
 
         // create the root environment
-        RootEnvironment root = new RootEnvironment(injector, lifecycle, validator, mapper, authenticators);
+        Environment environment = new Environment(rootLocator, lifecycleManager, validator, mapper, authenticators, registeredCommands, registeredHealthChecks);
 
-        // inject system-wide instances
-        root.addInjectableNamedConstant(Constants.SERVICE_NAME_INJECTION_KEY, name);
-        root.addInjectableSingletonInstance(validator, Validator.class);
-        root.addInjectableSingletonInstance(mapper);
-        root.addInjectableSingletonInstance(injector);
-        root.addInjectableSingletonInstance(root);
-        root.addInjectableSingletonInstance(lifecycle.getScheduledExecutorService(), ScheduledExecutorService.class);
-        root.addInjectableSingletonInstance(lifecycle.getTimer(), Timer.class); // FIXME (AG): use our own timer interface
-        root.addInjectableSingletonInstance(configuration, Configuration.class);
-        root.addInjectableSingletonInstance(authenticators);
+        // start configuring injectable objects
+        // we'll be adding all instances and implementation classes to the root service locator
+        // this makes them visible to the jersey applications
+
+        environment.addBinder(new ConfigurationBinder<>(configuration, configuration.getClass()));
+        environment.addBinder(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(name).to(String.class).named(Constants.SERVICE_NAME_INJECTION_KEY);
+                bind(validator).to(Validator.class);
+                bind(mapper).to(ObjectMapper.class);
+                bind(environment).to(Environment.class);
+                bind(lifecycleManager.getScheduledExecutorService()).to(ScheduledExecutorService.class);
+                bind(lifecycleManager.getTimer()).to(Timer.class); // FIXME (AG): use our own timer interface
+                bind(authenticators).to(Authenticators.class);
+                bind(registeredCommands).to(RegisteredCommands.class);
+                bind(registeredHealthChecks).to(RegisteredHealthChecks.class);
+            }
+        });
+
+        // register some basic commands
+        environment.registerCommand("gc", GarbageCollectionCommand.class);
+        environment.registerCommand("metrics", MetricsCommand.class);
+        environment.addAdminProvider(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bind(GarbageCollectionCommand.class).to(GarbageCollectionCommand.class).in(Singleton.class);
+                bind(MetricsCommand.class).to(MetricsCommand.class).in(Singleton.class);
+            }
+        });
+
+        // add exception mappers that only apply to the admin environment
+        environment.addAdminProvider(InvalidCommandExceptionMapper.class);
+
+        // add the resources we expose via the admin api
+        environment.addAdminResource(CommandsResource.class);
+        environment.addAdminResource(HealthCheckResource.class);
 
         // create the two environments (admin and service)
         String adminName = name + "-" + Constants.ADMIN_IDENTIFIER;
-        AdminEnvironment admin = new AdminEnvironment(adminName);
-        initializeJerseyApplication(adminName, classLoader, validator, mapper, admin);
+        initializeJerseyApplication(adminName, classLoader, validator, mapper, environment.getAdminResourceConfig());
 
         String serviceName = name + "-" + Constants.SERVICE_IDENTIFIER;
-        ServiceEnvironment service = new ServiceEnvironment(serviceName);
-        initializeJerseyApplication(serviceName, classLoader, validator, mapper, service);
-
-        // register some basic admin commands
-        admin.registerCommand("gc", GarbageCollectionCommand.class);
-        admin.registerCommand("metrics", MetricsCommand.class);
+        initializeJerseyApplication(serviceName, classLoader, validator, mapper, environment.getServiceResourceConfig());
 
         // punt to subclasses for further configuration
-        init(configuration, root, admin, service);
+        init(configuration, environment);
 
         // after this point we can't add any more jersey providers
         // resources, etc. and we're ready to expose our server to the world
 
-        LOGGER.trace("registered injectables:");
-        for (ActiveDescriptor<?> descriptor : injector.getDescriptors()) {
-            LOGGER.trace("registered c:{} s:{} r:{} d:{}", descriptor.getImplementation(), descriptor.getScope(), descriptor.isReified(), descriptor);
-        }
+        // list the objects that are registered with the root service locator
+        listInjected(rootLocator);
 
         // initialize the admin http server
-        HttpConfiguration adminConfiguration = configuration.getAdmin();
-        ApplicationHandler adminHandler = new ApplicationHandler(admin.getResourceConfig(), null, rootLocator);
-        final HttpServer adminHttpServer = new HttpServer(Constants.ADMIN_IDENTIFIER, adminConfiguration, lifecycle.getTimer(), adminHandler);
-        lifecycle.addManaged(adminHttpServer);
+        ApplicationHandler adminHandler = new ApplicationHandler(environment.getAdminResourceConfig(), null, rootLocator);
+        listInjected(adminHandler.getServiceLocator());
+        HttpServer adminHttpServer = new HttpServer(Constants.ADMIN_IDENTIFIER, configuration.getAdmin(), lifecycleManager.getTimer(), adminHandler);
+        lifecycleManager.add(adminHttpServer);
 
         // initialize the service http server
-        HttpConfiguration serviceConfiguration = configuration.getService();
-        ApplicationHandler serviceHandler = new ApplicationHandler(service.getResourceConfig(), null, rootLocator);
-        final HttpServer serviceHttpServer = new HttpServer(Constants.SERVICE_IDENTIFIER, serviceConfiguration, lifecycle.getTimer(), serviceHandler);
-        lifecycle.addManaged(serviceHttpServer);
+        ApplicationHandler serviceHandler = new ApplicationHandler(environment.getServiceResourceConfig(), null, rootLocator);
+        listInjected(serviceHandler.getServiceLocator());
+        HttpServer serviceHttpServer = new HttpServer(Constants.SERVICE_IDENTIFIER, configuration.getService(), lifecycleManager.getTimer(), serviceHandler);
+        lifecycleManager.add(serviceHttpServer);
 
         // finally, start up all managed services (which includes the two servers above)
-        lifecycle.start();
+        lifecycleManager.start();
     }
 
-    private void initializeJerseyApplication(String applicationName, ClassLoader classLoader, Validator validator, ObjectMapper mapper, ApplicationEnvironment environment) {
+    private void initializeJerseyApplication(String applicationName, ClassLoader classLoader, Validator validator, ObjectMapper mapper, ResourceConfig resourceConfig) {
         // set our name
-        environment.getResourceConfig().setApplicationName(applicationName);
+        resourceConfig.setApplicationName(applicationName);
 
         // set the class-loader to be the system-wide class loader
-        environment.getResourceConfig().setClassLoader(classLoader);
+        resourceConfig.setClassLoader(classLoader);
 
         // set default properties
-        environment.addProperty(CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
-        environment.addProperty(ServerProperties.WADL_FEATURE_DISABLE, true);
-        environment.addProperty(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
+        resourceConfig.addProperties(ImmutableMap.of(
+                CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, true,
+                ServerProperties.WADL_FEATURE_DISABLE, true,
+                ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true)
+        );
 
         // add exception mappers
-        environment.getResourceConfig().register(DefaultExceptionMapper.class);
-        environment.getResourceConfig().register(AuthenticationExceptionMapper.class);
-        environment.getResourceConfig().register(IllegalArgumentExceptionMapper.class);
-        environment.getResourceConfig().register(JsonProcessingExceptionMapper.class);
-        environment.getResourceConfig().register(ConstraintViolationExceptionMapper.class);
+        resourceConfig.register(DefaultExceptionMapper.class);
+        resourceConfig.register(AuthenticationExceptionMapper.class);
+        resourceConfig.register(IllegalArgumentExceptionMapper.class);
+        resourceConfig.register(JsonProcessingExceptionMapper.class);
+        resourceConfig.register(ConstraintViolationExceptionMapper.class);
 
         // add other providers
-        environment.getResourceConfig().register(AuthenticationFilter.class);
-        environment.getResourceConfig().register(RolesAllowedDynamicFeature.class);
-        environment.getResourceConfig().register(new ValidatingJacksonJaxbJsonProvider(validator, mapper, JacksonJaxbJsonProvider.DEFAULT_ANNOTATIONS));
+        resourceConfig.register(AuthenticationFilter.class);
+        resourceConfig.register(RolesAllowedDynamicFeature.class);
+        resourceConfig.register(new ValidatingJacksonJaxbJsonProvider(validator, mapper, JacksonJaxbJsonProvider.DEFAULT_ANNOTATIONS));
+    }
+
+    private void listInjected(ServiceLocator locator) {
+        LOGGER.trace("registered injectables [{}]:", locator.getName());
+
+        for (ActiveDescriptor<?> descriptor : locator.getDescriptors(d -> true)) {
+            LOGGER.trace("registered c:{} s:{} r:{} d:{}", descriptor.getImplementation(), descriptor.getScope(), descriptor.isReified(), descriptor);
+        }
     }
 
     private void displayBanner() {
@@ -254,11 +291,11 @@ public abstract class Service<T extends Configuration> {
         }
     }
 
-    public abstract void init(T configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception;
+    public abstract void init(T configuration, Environment environment) throws Exception;
 
     public final void shutdown() {
         // stop all managed services
-        LifecycleManager lifecycle = lifecycleReference.get();
+        LifecycleManager lifecycle = lifecycleManagerReference.get();
         if (lifecycle != null) { lifecycle.stop(); }
 
         // shutdown the injection system

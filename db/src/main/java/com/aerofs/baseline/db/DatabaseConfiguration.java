@@ -28,6 +28,15 @@ import javax.validation.constraints.NotNull;
 @NotThreadSafe
 public final class DatabaseConfiguration {
 
+    // TODO (AG): add the following parameters
+    /*
+    bifrost.db.maxWaitForConnection = 1000
+    bifrost.db.validationQuery = "SELECT 1"
+    bifrost.db.checkConnectionWhileIdle = true
+    bifrost.db.checkConnectionHealthWhenIdleFor = 60000
+    bifrost.db.closeConnectionIfIdleFor = 60000
+    */
+
     @NotBlank
     private String driverClass;
 

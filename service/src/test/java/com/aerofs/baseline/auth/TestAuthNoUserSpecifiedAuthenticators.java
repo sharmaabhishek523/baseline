@@ -16,11 +16,9 @@
 
 package com.aerofs.baseline.auth;
 
-import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
-import com.aerofs.baseline.ServiceEnvironment;
 import com.aerofs.baseline.http.HttpClientResource;
 import com.aerofs.baseline.http.HttpUtils;
 import org.apache.http.HttpResponse;
@@ -76,9 +74,9 @@ public final class TestAuthNoUserSpecifiedAuthenticators {
         }
 
         @Override
-        public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-            service.addResource(UserResource.class);
-            service.addResource(RootResource.class);
+        public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+            environment.addResource(UserResource.class);
+            environment.addResource(RootResource.class);
         }
     }
 

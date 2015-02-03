@@ -58,13 +58,13 @@ public final class TestConfiguration {
     @Test(expected = JsonMappingException.class)
     public void shouldThrowIfParsingInvalidConfigFile() throws URISyntaxException, IOException {
         ConfigurationHolder<ServiceConfiguration> holder = new ConfigurationHolder<ServiceConfiguration>() {};
-        loadConfiguration(holder, "invalid_config.yml");
+        loadConfiguration(holder, "config_tests/invalid_config.yml");
     }
 
     @Test(expected = ConstraintViolationException.class)
     public void shouldThrowIfValidatingInvalidConfigFile() throws URISyntaxException, IOException {
         ConfigurationHolder<ServiceConfiguration> holder = new ConfigurationHolder<ServiceConfiguration>() {};
-        Configuration loaded = loadConfiguration(holder, "missing_admin_block_config.yml");
+        Configuration loaded = loadConfiguration(holder, "config_tests/missing_admin_block_config.yml");
         Configuration.validateConfiguration(validatorFactory.getValidator(), loaded);
     }
 
@@ -96,7 +96,7 @@ public final class TestConfiguration {
         actual.setLogging(logging);
 
         ConfigurationHolder<ServiceConfiguration> holder = new ConfigurationHolder<ServiceConfiguration>() {};
-        Configuration loaded = loadConfiguration(holder, "valid_config.yml");
+        Configuration loaded = loadConfiguration(holder, "config_tests/valid_config.yml");
         Configuration.validateConfiguration(validatorFactory.getValidator(), loaded);
 
         assertThat(loaded, Matchers.<Configuration>equalTo(actual));

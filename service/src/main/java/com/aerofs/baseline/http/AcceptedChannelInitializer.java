@@ -27,6 +27,7 @@ import org.glassfish.jersey.server.ApplicationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,7 @@ import static com.aerofs.baseline.http.Constants.HTTP_MAX_CHUNK_SIZE;
 import static com.aerofs.baseline.http.Constants.HTTP_MAX_HEADER_SIZE;
 import static com.aerofs.baseline.http.Constants.HTTP_MAX_INITIAL_LINE_LENGTH;
 
+@ThreadSafe
 final class AcceptedChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AcceptedChannelInitializer.class);

@@ -16,7 +16,7 @@
 
 package com.aerofs.baseline.db;
 
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.metrics.MetricRegistries;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.jdbi.InstrumentedTimingCollector;
@@ -24,11 +24,11 @@ import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.exceptions.DBIException;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.sql.DataSource;
 
 @SuppressWarnings("unused")
-@ThreadSafe
+@NotThreadSafe
 public abstract class Databases {
 
     public static DBI newDBI(DataSource dataSource) {
@@ -40,12 +40,12 @@ public abstract class Databases {
         return dbi;
     }
 
-    public static ManagedDataSource newManagedDataSource(RootEnvironment root, DatabaseConfiguration database) {
+    public static ManagedDataSource newManagedDataSource(Environment environment, DatabaseConfiguration database) {
         BasicDataSource dataSource = (BasicDataSource) newDataSource(database);
         registerGauges(dataSource);
 
         ManagedDataSource managed = new ManagedDataSource(dataSource);
-        root.addManaged(managed);
+        environment.addManaged(managed);
 
         return managed;
     }
@@ -91,7 +91,7 @@ public abstract class Databases {
         MetricRegistries.getRegistry().register(MetricRegistries.name("db", dataSource.getUrl(), "idle"), (Gauge<Integer>) dataSource::getNumIdle);
     }
 
-    public static Throwable findRootCause(DBIException exception) {
+    public static Throwable findExceptionRootCause(DBIException exception) {
         Throwable underlying = exception;
 
         while(underlying != null && underlying instanceof DBIException) {

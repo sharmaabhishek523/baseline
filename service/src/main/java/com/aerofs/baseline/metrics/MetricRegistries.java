@@ -19,7 +19,9 @@ package com.aerofs.baseline.metrics;
 import com.codahale.metrics.MetricRegistry;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
+@ThreadSafe
 public abstract class MetricRegistries {
 
     // static holder pattern

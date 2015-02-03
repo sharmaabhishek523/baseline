@@ -19,11 +19,13 @@ package com.aerofs.baseline;
 import com.aerofs.baseline.errors.BaseExceptionMapper;
 import com.aerofs.baseline.errors.BaselineError;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
 
+@ThreadSafe
 @Singleton
-public final class DefaultExceptionMapper extends BaseExceptionMapper<Throwable> {
+final class DefaultExceptionMapper extends BaseExceptionMapper<Throwable> {
 
     public DefaultExceptionMapper() {
         super(ErrorResponseEntity.NO_STACK_IN_RESPONSE, StackLogging.ENABLE_LOGGING);

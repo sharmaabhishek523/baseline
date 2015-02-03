@@ -16,11 +16,9 @@
 
 package com.aerofs.baseline.http;
 
-import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
-import com.aerofs.baseline.ServiceEnvironment;
 import com.google.common.collect.Lists;
 import com.google.common.net.HttpHeaders;
 import org.apache.http.HttpHost;
@@ -47,8 +45,8 @@ public final class TestPipeliningWithHttpRequestHandler {
      private final Service<ServiceConfiguration> server = new Service<ServiceConfiguration>("test") {
 
          @Override
-         public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-            service.addResource(PipelinedResource.class);
+         public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+            environment.addResource(PipelinedResource.class);
         }
     };
 

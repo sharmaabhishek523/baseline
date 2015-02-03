@@ -21,8 +21,10 @@ import com.google.common.base.Objects;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 @SuppressWarnings("unused")
+@NotThreadSafe
 public final class FileLoggingConfiguration {
 
     private boolean enabled = false;

@@ -16,6 +16,9 @@
 
 package com.aerofs.baseline.http;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public abstract class RequestProperties {
 
     public static final String REQUEST_CONTEXT_CHANNEL_ID_PROPERTY = "channel-id";

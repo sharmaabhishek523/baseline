@@ -20,8 +20,10 @@ import com.google.common.collect.Lists;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 
+@NotThreadSafe
 final class BufferingHttpObjectHandler extends ChannelDuplexHandler {
 
     private final ArrayList<Object> queuedReads = Lists.newArrayListWithCapacity(10); // FIXME (AG): UNBOUNDED!

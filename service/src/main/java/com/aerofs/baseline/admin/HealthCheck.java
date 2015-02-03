@@ -27,5 +27,5 @@ public interface HealthCheck {
      *
      * @return {@code SUCCESS} if the check was successful, {@code FAILURE} otherwise
      */
-    HealthCheckStatus check();
+    Status check();
 }

@@ -26,10 +26,12 @@ import ch.qos.logback.core.FileAppender;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.logging.LogManager;
 
 import static org.slf4j.Logger.ROOT_LOGGER_NAME;
 
+@NotThreadSafe
 public abstract class Logging {
 
     /**

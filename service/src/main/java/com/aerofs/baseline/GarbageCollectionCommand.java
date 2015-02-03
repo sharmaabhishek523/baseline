@@ -19,16 +19,14 @@ package com.aerofs.baseline;
 import com.aerofs.baseline.admin.Command;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.PrintWriter;
 
 /**
- * Task that runs the JVM garbage collector.
+ * Admin command that runs the JVM garbage collector.
  */
-@Singleton
 @ThreadSafe
-public final class GarbageCollectionCommand implements Command {
+final class GarbageCollectionCommand implements Command {
 
     @Override
     public void execute(MultivaluedMap<String, String> queryParameters, PrintWriter entityWriter) throws Exception {

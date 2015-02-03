@@ -16,6 +16,9 @@
 
 package com.aerofs.baseline.errors;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public enum BaselineError {
 
     GENERAL(111),

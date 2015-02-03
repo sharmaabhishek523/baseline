@@ -20,9 +20,11 @@ import com.google.common.base.Objects;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.Min;
 
 @SuppressWarnings("unused")
+@NotThreadSafe
 public final class HttpConfiguration {
 
     @NotBlank

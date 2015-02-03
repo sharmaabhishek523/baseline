@@ -56,7 +56,7 @@ public final class ServiceConfiguration extends Configuration {
 
     private static final LoggingConfiguration LOGGING = new LoggingConfiguration();
     static {
-        LOGGING.setLevel("DEBUG");
+        LOGGING.setLevel("ALL");
         LOGGING.setConsole(CONSOLE);
         LOGGING.setFile(FILE);
     }

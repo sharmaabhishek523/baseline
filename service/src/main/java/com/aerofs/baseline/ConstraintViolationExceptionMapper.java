@@ -21,6 +21,7 @@ import com.aerofs.baseline.errors.BaselineError;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -29,8 +30,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@ThreadSafe
 @Singleton
-public final class ConstraintViolationExceptionMapper extends BaseExceptionMapper<ConstraintViolationException> {
+final class ConstraintViolationExceptionMapper extends BaseExceptionMapper<ConstraintViolationException> {
 
     public ConstraintViolationExceptionMapper() {
         super(ErrorResponseEntity.NO_STACK_IN_RESPONSE, StackLogging.ENABLE_LOGGING);

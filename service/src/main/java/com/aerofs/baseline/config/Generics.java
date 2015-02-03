@@ -19,6 +19,7 @@ package com.aerofs.baseline.config;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -28,6 +29,8 @@ import java.lang.reflect.TypeVariable;
 // It is based on the principles in:
 //   * http://gafter.blogspot.com/2006/12/super-type-tokens.html
 //   * http://www.artima.com/weblogs/viewpost.jsp?thread=208860
+@SuppressWarnings("unchecked")
+@ThreadSafe
 abstract class Generics {
 
     /**
@@ -38,7 +41,6 @@ abstract class Generics {
      * @param <T>      the objectType bound
      * @return the class's objectType parameter
      */
-    @SuppressWarnings("unchecked")
     static <T> Class<T> getTypeParameter(Class<?> klass, Class<? super T> bound) {
         Type t = Preconditions.checkNotNull(klass, "cannot get type parameter for null object");
         while (t instanceof Class<?>) {
@@ -72,7 +74,6 @@ abstract class Generics {
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
     private static <T> Class<T> determineClass(Class<? super T> bound, Type candidate) {
         if (candidate instanceof Class<?>) {
             final Class<?> cls = (Class<?>) candidate;

@@ -20,8 +20,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.TimeUnit;
 
+@ThreadSafe
 final class IdleTimeoutHandler extends IdleStateHandler {
 
     public IdleTimeoutHandler(long readerIdleTime, long writerIdleTime, long allIdleTime, TimeUnit unit) {

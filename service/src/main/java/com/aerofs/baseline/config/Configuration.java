@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
@@ -47,6 +48,7 @@ import java.util.Set;
  * </ul>
  */
 @SuppressWarnings("unused")
+@NotThreadSafe
 public abstract class Configuration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Configuration.class);

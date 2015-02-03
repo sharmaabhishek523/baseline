@@ -38,7 +38,7 @@ public final class DBIExceptionMapper implements ExceptionMapper<DBIException> {
 
     @Override
     public Response toResponse(DBIException throwable) {
-        Throwable cause = Databases.findRootCause(throwable);
+        Throwable cause = Databases.findExceptionRootCause(throwable);
         ExceptionMapper actualMapper = providers.getExceptionMapper(cause.getClass());
         return actualMapper.toResponse(cause);
     }

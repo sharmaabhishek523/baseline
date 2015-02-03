@@ -73,8 +73,6 @@ To report bugs or request features please contact:
 * Change loglevel via task
 * Do not run async tasks in timer thread
 * Properly flow control runnables
-* Use annotations to indicate managed classes
-* Use annotations to schedule classes
 * Commands should be able to return an error code (without exception)
 * Reduce the number of supplied exceptions
 * Re-enable use of low-byte-watermark

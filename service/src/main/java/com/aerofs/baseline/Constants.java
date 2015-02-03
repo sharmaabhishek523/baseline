@@ -20,6 +20,9 @@ import ch.qos.logback.classic.Level;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * Constants shared across baseline components.
+ */
 @Immutable
 public abstract class Constants {
 
@@ -35,8 +38,13 @@ public abstract class Constants {
     public static final String ADMIN_IDENTIFIER = "adm";
     public static final String SERVICE_IDENTIFIER = "svc";
 
-    // threading
-    public static final int DEFAULT_SCHEDULED_THREAD_POOL_EXECUTOR_SIZE = 2;
+    // reserved admin root resource names
+    public static final String COMMANDS_RESOURCE_PATH = "/commands";
+    public static final String HEALTH_CHECK_RESOURCE_PATH = "/status";
+
+    // logging
+    public static final String DEFAULT_LOG_LEVEL = Level.INFO.levelStr;
+    public static final String DEFAULT_LOGFILE_NAME = "server.log";
 
     // metric names
     public static final String JVM_BUFFERS = "jvm.buffers";
@@ -44,16 +52,17 @@ public abstract class Constants {
     public static final String JVM_MEMORY = "jvm.memory";
     public static final String JVM_THREADS = "jvm.threads";
 
-    // logging
-    public static final String DEFAULT_LOG_LEVEL = Level.INFO.levelStr;
-    public static final String DEFAULT_LOGFILE_NAME = "server.log";
+    // threading
+    public static final int DEFAULT_SCHEDULED_THREAD_POOL_EXECUTOR_SIZE = 2;
 
     // admin parameters
     public static final String JSON_COMMAND_RESPONSE_ENTITY_PRETTY_PRINTING_QUERY_PARAMETER = "pretty";
     public static final int DEFAULT_COMMAND_RESPONSE_ENTITY_LENGTH = 1024;
 
-    // injectable
+    // named injection parameters
     public static final String SERVICE_NAME_INJECTION_KEY = "SERVICE_NAME";
+    public static final String COMMAND_MAP_IDENTIFIER_INJECTION_KEY = "COMMANDS";
+    public static final String HEALTH_CHECK_MAP_IDENTIFIER_INJECTION_KEY = "CHECKS";
 
     private Constants() {
         // to prevent instantiation by subclasses

@@ -18,7 +18,12 @@ package com.aerofs.baseline.config;
 
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
+import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Singleton;
+
 @SuppressWarnings({"unchecked", "unused"})
+@ThreadSafe
+@Singleton
 public final class ConfigurationBinder<T extends Configuration> extends AbstractBinder {
 
     private final T configuration;

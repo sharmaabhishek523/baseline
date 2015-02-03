@@ -35,8 +35,8 @@ import javax.ws.rs.core.Response;
  *     <li>Does not return the exception stack in the response.</li>
  * </ul>
  */
-@Singleton
 @ThreadSafe
+@Singleton
 public final class InvalidCommandExceptionMapper extends BaseExceptionMapper<InvalidCommandException> {
 
     public InvalidCommandExceptionMapper() {

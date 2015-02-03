@@ -21,6 +21,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
 @ChannelHandler.Sharable
 final class FinalInboundHandler extends ChannelInboundHandlerAdapter {
 

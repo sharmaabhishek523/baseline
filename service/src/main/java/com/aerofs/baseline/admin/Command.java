@@ -20,8 +20,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.io.PrintWriter;
 
 /**
- * Implemented by a class that performs an action
- * on the service or one or more service components.
+ * Implemented by a class that performs an admin function
+ * on either the service or one or more service components.
  */
 public interface Command {
 

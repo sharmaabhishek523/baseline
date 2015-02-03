@@ -19,8 +19,10 @@ package com.aerofs.baseline.logging;
 import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 @SuppressWarnings("unused")
+@NotThreadSafe
 public final class ConsoleLoggingConfiguration {
 
     private boolean enabled = true;

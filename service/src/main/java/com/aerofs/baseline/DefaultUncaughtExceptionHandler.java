@@ -21,10 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Singleton;
 import javax.validation.ConstraintViolationException;
 
 @ThreadSafe
-public final class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
+@Singleton
+final class DefaultUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUncaughtExceptionHandler.class);
 

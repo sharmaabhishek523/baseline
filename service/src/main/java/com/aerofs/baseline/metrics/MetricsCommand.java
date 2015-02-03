@@ -29,13 +29,13 @@ import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.PrintWriter;
 import java.util.Map;
 
-@Singleton
+@ThreadSafe
 public final class MetricsCommand implements Command {
 
     private final ObjectMapper mapper;

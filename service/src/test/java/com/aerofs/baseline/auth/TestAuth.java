@@ -16,11 +16,9 @@
 
 package com.aerofs.baseline.auth;
 
-import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
-import com.aerofs.baseline.ServiceEnvironment;
 import com.aerofs.baseline.http.HttpClientResource;
 import com.aerofs.baseline.http.HttpUtils;
 import com.google.common.base.Charsets;
@@ -31,18 +29,27 @@ import com.google.common.net.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -50,7 +57,27 @@ import java.util.concurrent.Future;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+@RunWith(Parameterized.class)
 public final class TestAuth {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("AUTH");
+
+    /**
+     * Represents whether an instance of an authenticator
+     * should be created manually within a test server (i.e. explicit 'new')
+     * or whether we should use HK2.
+     */
+    enum CreateType {
+        /** Manual instance creation. */
+        INSTANCE,
+        /** HK2-managed injection. */
+        INJECTED
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> getTestParameters() {
+        return Arrays.asList(new Object[][] {{CreateType.INSTANCE}, {CreateType.INJECTED}}); // test manually-created instances followed by HK2 created/injected instances
+    }
 
     private static final Set<String> ROOT_ROLES = ImmutableSet.of("admin", "user");
     private static final Set<String> USER_ROLES = ImmutableSet.of("user");
@@ -60,6 +87,11 @@ public final class TestAuth {
     //
 
     public static final class ThrowingAuthenticator implements Authenticator {
+
+        @Inject
+        public ThrowingAuthenticator() {
+            LoggerFactory.getLogger("AUTH").info(">>>>> CREATED THROW");
+        }
 
         @Override
         public String getName() {
@@ -124,6 +156,11 @@ public final class TestAuth {
         private static final String FANCY_AUTHENTICATION = "Fancy-Authentication";
         private static final String USER = "ABHISHEK";
         private static final String PASS = "PASSWORD";
+
+        @Inject
+        public HeFancyAuthenticator() {
+            LOGGER.info(">>>>> CREATED FANCY");
+        }
 
         @Override
         public String getName() {
@@ -207,6 +244,11 @@ public final class TestAuth {
         private static final String ROOT = "ROOT";
         private static final String PASS = "PASS";
 
+        @Inject
+        public HttpBasicAuthenticator() {
+            LoggerFactory.getLogger("AUTH").info(">>>>> CREATED BASIC");
+        }
+
         @Override
         public String getName() {
             return SecurityContext.BASIC_AUTH;
@@ -277,18 +319,40 @@ public final class TestAuth {
 
     public static final class TestService extends Service<ServiceConfiguration> {
 
-        public TestService() {
+        private final CreateType createType;
+
+        public TestService(CreateType createType) {
             super("test");
+            this.createType = createType;
         }
 
         @Override
-        public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-            root.addAuthenticator(new HeFancyAuthenticator()); // try fancy authentication first
-            root.addAuthenticator(new HttpBasicAuthenticator()); // then basic auth...
-            root.addAuthenticator(new ThrowingAuthenticator());
+        public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+            // authenticator chain:
+            // 1. first, try fancy authentication
+            // 2. then, basic auth
+            // 3. finally, we have an authenticator that throws (to simulate a failing authenticator)
 
-            service.addResource(UserResource.class);
-            service.addResource(RootResource.class);
+            if (createType == CreateType.INSTANCE) {
+                environment.addAuthenticator(new HeFancyAuthenticator()); // try fancy authentication first
+                environment.addAuthenticator(new HttpBasicAuthenticator()); // then basic auth...
+                environment.addAuthenticator(new ThrowingAuthenticator());
+            } else {
+                environment.addAuthenticator(HeFancyAuthenticator.class);
+                environment.addAuthenticator(HttpBasicAuthenticator.class);
+                environment.addAuthenticator(ThrowingAuthenticator.class);
+                environment.addBinder(new AbstractBinder() {
+                    @Override
+                    protected void configure() {
+                        bind(HeFancyAuthenticator.class).to(HeFancyAuthenticator.class).in(Singleton.class);
+                        bind(HttpBasicAuthenticator.class).to(HttpBasicAuthenticator.class).in(Singleton.class);
+                        bind(ThrowingAuthenticator.class).to(ThrowingAuthenticator.class).in(Singleton.class);
+                    }
+                });
+            }
+
+            environment.addResource(UserResource.class);
+            environment.addResource(RootResource.class);
         }
     }
 
@@ -299,11 +363,17 @@ public final class TestAuth {
     @Rule
     public HttpClientResource client = new HttpClientResource();
 
+    private final CreateType createType;
+
     private TestService server;
+
+    public TestAuth(CreateType createType) {
+        this.createType = createType;
+    }
 
     @Before
     public void setup() throws Exception {
-        server = new TestService();
+        server = new TestService(createType);
         server.runWithConfiguration(ServiceConfiguration.TEST_CONFIGURATION);
     }
 

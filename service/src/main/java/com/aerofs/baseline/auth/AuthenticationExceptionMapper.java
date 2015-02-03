@@ -19,9 +19,11 @@ package com.aerofs.baseline.auth;
 import com.aerofs.baseline.errors.BaseExceptionMapper;
 import com.aerofs.baseline.errors.BaselineError;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
 
+@ThreadSafe
 @Singleton
 public final class AuthenticationExceptionMapper extends BaseExceptionMapper<AuthenticationException> {
 

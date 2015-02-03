@@ -16,9 +16,12 @@
 
 package com.aerofs.baseline.http;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Contains headers and header values used by AeroFS backend services.
  */
+@Immutable
 public abstract class Headers {
 
     /**

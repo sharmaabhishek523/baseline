@@ -19,6 +19,8 @@ package com.aerofs.baseline.logging;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Minimal logging layout that encodes only:
  * <ul>
@@ -27,6 +29,7 @@ import ch.qos.logback.classic.PatternLayout;
  *     <li>Message and/or exception</li>
  * </ul>
  */
+@ThreadSafe
 final class MinimalLayout extends PatternLayout {
 
     MinimalLayout(LoggerContext context) {

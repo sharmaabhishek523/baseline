@@ -54,7 +54,7 @@ public final class AuthenticationResult {
     /**
      * Result of an authentication operation.
      */
-    public static enum Status {
+    public enum Status {
 
         /** The request cannot be verified by the authenticator. */
         UNSUPPORTED,

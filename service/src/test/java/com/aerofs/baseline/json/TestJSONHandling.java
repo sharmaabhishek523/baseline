@@ -16,11 +16,9 @@
 
 package com.aerofs.baseline.json;
 
-import com.aerofs.baseline.AdminEnvironment;
-import com.aerofs.baseline.RootEnvironment;
+import com.aerofs.baseline.Environment;
 import com.aerofs.baseline.Service;
 import com.aerofs.baseline.ServiceConfiguration;
-import com.aerofs.baseline.ServiceEnvironment;
 import com.aerofs.baseline.http.HttpClientResource;
 import com.aerofs.baseline.http.HttpUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -86,8 +84,8 @@ public final class TestJSONHandling {
     private final Service<ServiceConfiguration> server = new Service<ServiceConfiguration>("test") {
 
         @Override
-        public void init(ServiceConfiguration configuration, RootEnvironment root, AdminEnvironment admin, ServiceEnvironment service) throws Exception {
-            service.addProvider(Resource.class);
+        public void init(ServiceConfiguration configuration, Environment environment) throws Exception {
+            environment.addResource(Resource.class);
         }
     };
 
@@ -119,7 +117,8 @@ public final class TestJSONHandling {
 
     @Test
     public void shouldReceiveErrorOnMakingPostWithInvalidJsonObject() throws ExecutionException, InterruptedException, JsonProcessingException {
-        String serialized = mapper.writeValueAsString(new JsonObject(null, "allen"));
+        // noinspection ConstantConditions
+        String serialized = mapper.writeValueAsString(new JsonObject(null, "allen")); // yes; I know I'm using 'null'
         ByteArrayInputStream contentInputStream = new ByteArrayInputStream(serialized.getBytes(Charsets.US_ASCII));
         BasicHttpEntity entity = new BasicHttpEntity();
         entity.setContent(contentInputStream);

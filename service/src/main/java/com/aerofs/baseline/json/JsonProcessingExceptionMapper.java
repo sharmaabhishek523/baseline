@@ -20,9 +20,11 @@ import com.aerofs.baseline.errors.BaseExceptionMapper;
 import com.aerofs.baseline.errors.BaselineError;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Response;
 
+@ThreadSafe
 @Singleton
 public final class JsonProcessingExceptionMapper extends BaseExceptionMapper<JsonProcessingException> {
 

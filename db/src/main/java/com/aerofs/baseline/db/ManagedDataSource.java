@@ -44,12 +44,12 @@ public final class ManagedDataSource implements Managed, DataSource {
     }
 
     @Override
-    public void start() throws Exception {
+    public synchronized void start() throws Exception {
         LOGGER.info("start datasource:{}", dataSource.getUrl());
     }
 
     @Override
-    public void stop() {
+    public synchronized void stop() {
         LOGGER.info("stop datasource:{}", dataSource.getUrl());
 
         try {

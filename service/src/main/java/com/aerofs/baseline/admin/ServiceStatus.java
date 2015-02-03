@@ -30,10 +30,11 @@ import java.util.Map;
  * Contains a list of all executed health checks
  * and their execution status.
  */
+@SuppressWarnings("unused")
 @NotThreadSafe
 public final class ServiceStatus {
 
-    private final Map<String, HealthCheckStatus> consolidated;
+    private final Map<String, Status> consolidated;
 
     public ServiceStatus() {
         this.consolidated = Maps.newHashMap();
@@ -45,7 +46,7 @@ public final class ServiceStatus {
      * @param consolidated mapping of all executed health checks and their associated execution status
      */
     @JsonCreator
-    public ServiceStatus(@JsonProperty("consolidated") Map<String, HealthCheckStatus> consolidated) {
+    public ServiceStatus(@JsonProperty("consolidated") Map<String, Status> consolidated) {
         this.consolidated = consolidated;
     }
 
@@ -55,7 +56,7 @@ public final class ServiceStatus {
      * @param name health check name
      * @param status execution status
      */
-    public void addStatus(String name, HealthCheckStatus status) {
+    public void addStatus(String name, Status status) {
         Object previous = consolidated.putIfAbsent(name, status);
         Preconditions.checkState(previous == null, "previously added status for \"%s\"", name);
     }
@@ -63,8 +64,7 @@ public final class ServiceStatus {
     /**
      * @return mapping of all executed health checks and their associated execution status
      */
-    @SuppressWarnings("unused")
-    public Map<String, HealthCheckStatus> getConsolidated() {
+    public Map<String, Status> getConsolidated() {
         return consolidated;
     }
 

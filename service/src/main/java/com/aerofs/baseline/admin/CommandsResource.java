@@ -17,14 +17,12 @@
 package com.aerofs.baseline.admin;
 
 import com.aerofs.baseline.Constants;
-import com.aerofs.baseline.RootEnvironment;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
+import org.glassfish.hk2.api.ServiceHandle;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.internal.util.collection.ImmutableMultivaluedMap;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -67,28 +65,27 @@ import java.io.PrintWriter;
  *     curl http://service_url:service_admin_port/commands/command_name[?query_parameter...]
  * </pre>
  */
-@Path("/commands")
-@Singleton
+@Path(Constants.COMMANDS_RESOURCE_PATH)
 @ThreadSafe
+@Singleton
 public final class CommandsResource {
 
-    private final RootEnvironment root;
-    private final ImmutableMap<String, Class<Command>> commands;
+    private final ServiceLocator locator;
+    private final RegisteredCommands commands;
 
-    @SuppressWarnings({"rawtypes", "unchecked", "unused"})
-    @Inject
-    private CommandsResource(RootEnvironment root, @Named("commands") ImmutableMap commands) {
-        this.root = root;
+    private CommandsResource(@Context ServiceLocator locator, @Context RegisteredCommands commands) {
+        this.locator = locator;
         this.commands = commands;
     }
 
+    @SuppressWarnings("unchecked")
     @Path("/{command}")
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     public InputStream runTask(@PathParam("command") String name, @Context UriInfo uriInfo) throws Exception {
-        Class<Command> commandClass = commands.get(name);
+        Object located = commands.get(name);
 
-        if (commandClass == null) {
+        if (located == null) {
             throw new InvalidCommandException(name);
         }
 
@@ -102,12 +99,12 @@ public final class CommandsResource {
             // don't allow the commands to change the parameters
             ImmutableMultivaluedMap<String, String> queryParameters = new ImmutableMultivaluedMap<>(uriInfo.getQueryParameters());
 
-            // hmm...apparently these instances have to be cached manually?
-            // see SubResourceLocatorRouter.java@2.14#L146
-            // see JerseyResourceContext.java@2.14#L153
-            // find and execute the command
-            Command command = root.getOrCreateInstance(commandClass);
-            command.execute(queryParameters, writer);
+            // execute the command
+            if (located instanceof Command) {
+                executeCommand((Command) located, writer, queryParameters);
+            } else {
+                loadClassAndExecuteCommand((Class) located, writer, queryParameters);
+            }
 
             // flush the writer explicitly to force it
             // to write through its buffered data
@@ -116,5 +113,23 @@ public final class CommandsResource {
             // return the entity content
             return new ByteArrayInputStream(underlying.toByteArray());
         }
+    }
+
+    private void loadClassAndExecuteCommand(Class<? extends Command> commandClass, PrintWriter writer, ImmutableMultivaluedMap<String, String> queryParameters) throws Exception {
+        ServiceHandle<? extends Command> handle = null;
+        try {
+            // instantiate the command using the service locator
+            handle = locator.getServiceHandle(commandClass);
+            executeCommand(handle.getService(), writer, queryParameters);
+        } finally {
+            // destroy the created object if it's not a singleton
+            if (handle != null && handle.getActiveDescriptor().getScopeAnnotation() != Singleton.class) {
+                handle.destroy();
+            }
+        }
+    }
+
+    private void executeCommand(Command command, PrintWriter writer, ImmutableMultivaluedMap<String, String> queryParameters) throws Exception {
+        command.execute(queryParameters, writer);
     }
 }

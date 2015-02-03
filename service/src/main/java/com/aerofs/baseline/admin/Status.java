@@ -27,13 +27,14 @@ import javax.annotation.concurrent.Immutable;
 /**
  * Result of a {@link HealthCheck} execution.
  */
+@SuppressWarnings("unused")
 @Immutable
-public final class HealthCheckStatus {
+public final class Status {
 
     /**
-     * Status of a {@link HealthCheck} execution.
+     * Result of a {@link HealthCheck} execution.
      */
-    public enum Status {
+    public enum Value {
         /** The health check executed successfully. */
         SUCCESS,
 
@@ -41,76 +42,74 @@ public final class HealthCheckStatus {
         FAILURE,
     }
 
-    private static final HealthCheckStatus SUCCESS = new HealthCheckStatus(Status.SUCCESS);
-    private static final HealthCheckStatus FAILURE = new HealthCheckStatus(Status.FAILURE);
+    private static final Status SUCCESS = new Status(Value.SUCCESS);
+    private static final Status FAILURE = new Status(Value.FAILURE);
 
     /**
-     * Factory method to return an instance of {@link HealthCheckStatus}
+     * Factory method to return an instance of {@link Status}
      * with {@code status} of {@code SUCCESS} and no {@code message}.
      *
-     * @return instance with {@code status} of {@code SUCCESS} and no {@code message}
+     * @return instance with {@code value} of {@code SUCCESS} and no {@code message}
      */
-    public static HealthCheckStatus success() {
+    public static Status success() {
         return SUCCESS;
     }
 
     /**
-     * Factory method to return an instance of {@link HealthCheckStatus}
+     * Factory method to return an instance of {@link Status}
      * with {@code status} of {@code FAILURE} and no {@code message}.
      *
-     * @return {@code HealthCheckStatus} instance with {@code status} of
+     * @return {@code Status} instance with {@code value} of
      * {@code FAILURE} and no {@code message}
      */
-    public static HealthCheckStatus failure() {
+    public static Status failure() {
         return FAILURE;
     }
 
     /**
-     * Factory method to return an instance of {@link HealthCheckStatus}
-     * with {@code status} of {@code FAILURE} and the user-specified
+     * Factory method to return an instance of {@link Status}
+     * with {@code value} of {@code FAILURE} and the user-specified
      * {@code message}.
      *
      * @param message explanatory message describing the status failure
      *
-     * @return {@code HealthCheckStatus} instance with {@code status} of {@code FAILURE}
+     * @return {@code Status} instance with {@code value} of {@code FAILURE}
      * and the user-specified {@code message}
      */
-    public static HealthCheckStatus failure(String message) {
+    public static Status failure(String message) {
         Preconditions.checkNotNull(message, "cannot use null failure message");
-        return new HealthCheckStatus(Status.FAILURE, message);
+        return new Status(Value.FAILURE, message);
     }
 
     //
-    // actual health check status class
+    // actual status class
     // you can only create instances via the statics above
     //
 
-    private final Status status;
+    private final Value value;
+    private final @Nullable String message;
 
-    @Nullable
-    private final String message;
-
-    private HealthCheckStatus(Status status) {
-        this(status, null);
+    private Status(Value value) {
+        this(value, null);
     }
 
     // NOTE: we can have only *one* constructor annotated with JsonCreator, so we choose the most general one
     // http://stackoverflow.com/questions/15931082/how-to-deserialize-a-class-with-overloaded-constructors-using-jsoncreator
     @JsonCreator
-    private HealthCheckStatus(@JsonProperty("status") Status status, @JsonProperty("message") @Nullable String message) {
-        this.status = status;
+    private Status(@JsonProperty("status") Value value, @JsonProperty("message") @Nullable String message) {
+        this.value = value;
         this.message = message;
     }
 
     /**
      * @return the health check {@code Status} indicating whether the health check succeeded or failed
      */
-    public Status getStatus() {
-        return status;
+    public Value getValue() {
+        return value;
     }
 
     /**
-     * @return optional message explaining {@link HealthCheckStatus#getStatus}
+     * @return optional message explaining {@link #getValue}
      */
     public final @Nullable String getMessage() {
         return message;
@@ -121,20 +120,20 @@ public final class HealthCheckStatus {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        HealthCheckStatus other = (HealthCheckStatus) o;
-        return Objects.equal(status, other.status) && Objects.equal(message, other.message);
+       Status other = (Status) o;
+        return Objects.equal(value, other.value) && Objects.equal(message, other.message);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(status, message);
+        return Objects.hashCode(value, message);
     }
 
     @Override
     public String toString() {
         return Objects
                 .toStringHelper(this)
-                .add("status", status)
+                .add("status", value)
                 .add("message", message)
                 .toString();
     }

@@ -16,11 +16,13 @@
 
 package com.aerofs.baseline.http;
 
+import javax.annotation.concurrent.Immutable;
 import java.util.concurrent.TimeUnit;
 
 /**
  * HTTP-processing-specific properties and their values.
  */
+@Immutable
 abstract class Constants {
 
     // network

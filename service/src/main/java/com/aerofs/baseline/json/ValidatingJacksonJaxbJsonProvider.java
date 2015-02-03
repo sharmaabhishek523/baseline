@@ -21,6 +21,8 @@ import com.fasterxml.jackson.jaxrs.cfg.Annotations;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Singleton;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
@@ -33,6 +35,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Set;
 
+@ThreadSafe
+@Singleton
 public final class ValidatingJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
 
     private final Validator validator;

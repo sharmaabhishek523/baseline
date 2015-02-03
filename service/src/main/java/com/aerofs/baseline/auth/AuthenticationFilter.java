@@ -17,6 +17,7 @@
 package com.aerofs.baseline.auth;
 
 import com.aerofs.baseline.http.RequestProperties;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
 /**
@@ -43,16 +43,17 @@ import java.io.IOException;
  * that can authenticate the request (whether successfully or not).
  */
 @ThreadSafe
-@Provider
-@Priority(Priorities.AUTHENTICATION)
 @Singleton
+@Priority(Priorities.AUTHENTICATION)
 public final class AuthenticationFilter implements ContainerRequestFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationFilter.class);
 
+    private final ServiceLocator locator;
     private final Authenticators authenticators;
 
-    public AuthenticationFilter(@Context Authenticators authenticators) {
+    public AuthenticationFilter(@Context ServiceLocator locator, @Context Authenticators authenticators) {
+        this.locator = locator;
         this.authenticators = authenticators;
     }
 
@@ -68,22 +69,26 @@ public final class AuthenticationFilter implements ContainerRequestFilter {
         SecurityContext securityContext = requestContext.getSecurityContext();
 
         if (needsAuth(securityContext)) {
-            for (Authenticator authenticator : authenticators) {
-                try {
+            try {
+                authenticators.visit(locator, authenticator -> {
                     AuthenticationResult result = authenticator.authenticate(requestContext.getHeaders());
-                    if (result.getStatus() == AuthenticationResult.Status.SUCCEEDED) {
-                        requestContext.setSecurityContext(result.getSecurityContext()); // override default unauthenticated context
-                        break;
-                    } else if (result.getStatus() == AuthenticationResult.Status.FAILED) {
-                        break;
+
+                    if (result.getStatus() == AuthenticationResult.Status.UNSUPPORTED) {
+                        return true;
+                    } else {
+                        if (result.getStatus() == AuthenticationResult.Status.SUCCEEDED) {
+                            requestContext.setSecurityContext(result.getSecurityContext()); // override default unauthenticated context
+                        }
+
+                        return false;
                     }
-                } catch (AuthenticationException e) {
-                    logError(requestContext, authenticator, e);
-                    throw e;
-                } catch (Exception e) {
-                    logError(requestContext, authenticator, e);
-                    throw new IOException("fail authenticate using " + authenticator.getName(), e);
-                }
+                });
+            } catch (AuthenticationException e) {
+                logError(requestContext, e);
+                throw e;
+            } catch (Exception e) {
+                logError(requestContext, e);
+                throw new IOException("fail authenticate", e);
             }
         }
     }
@@ -92,7 +97,7 @@ public final class AuthenticationFilter implements ContainerRequestFilter {
         return securityContext instanceof UnauthenticatedSecurityContext || securityContext == null || securityContext.getUserPrincipal() == null;
     }
 
-    private static void logError(ContainerRequestContext requestContext, Authenticator authenticator, Exception e) {
-        LOGGER.warn("{}: [{}] fail authenticate using authenticator {}", requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_CHANNEL_ID_PROPERTY), requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_REQUEST_ID_PROPERTY), authenticator.getName(), e);
+    private static void logError(ContainerRequestContext requestContext, Exception e) {
+        LOGGER.warn("{}: [{}] fail authenticate", requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_CHANNEL_ID_PROPERTY), requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_REQUEST_ID_PROPERTY), e);
     }
 }

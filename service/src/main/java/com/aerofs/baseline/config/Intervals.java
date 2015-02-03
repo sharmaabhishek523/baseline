@@ -18,6 +18,7 @@ package com.aerofs.baseline.config;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.validation.ValidationException;
 import java.util.regex.Pattern;
 
@@ -27,6 +28,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+@ThreadSafe
 abstract class Intervals {
 
     static long parseFrom(String interval) {

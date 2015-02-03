@@ -28,6 +28,7 @@ import org.glassfish.jersey.server.ApplicationHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +37,7 @@ import static io.netty.channel.ChannelOption.ALLOCATOR;
 import static io.netty.channel.ChannelOption.AUTO_READ;
 import static io.netty.channel.ChannelOption.SO_BACKLOG;
 
+@NotThreadSafe
 public final class HttpServer implements Managed {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServer.class);

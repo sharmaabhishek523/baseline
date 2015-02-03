@@ -16,11 +16,15 @@
 
 package com.aerofs.baseline.auth;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Thrown by an {@link com.aerofs.baseline.auth.Authenticator}
  * implementation to signal that the authenticator failed
  * <strong>during</strong> authentication.
  */
+@SuppressWarnings("unused")
+@Immutable
 public final class AuthenticationException extends RuntimeException {
 
     private static final long serialVersionUID = -3984422008592302011L;
