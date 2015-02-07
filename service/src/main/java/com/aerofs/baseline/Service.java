@@ -144,6 +144,9 @@ public abstract class Service<T extends Configuration> {
         ServiceLocator rootLocator = ServiceLocatorFactory.getInstance().create("root");
         rootLocatorReference.set(rootLocator);
 
+        // grab a reference to our system-wide class loader
+        ClassLoader classLoader = rootLocator.getClass().getClassLoader();
+
         // no one accesses the locator directly - they go through the injector
         Injector injector = new Injector(rootLocator);
 
@@ -180,11 +183,11 @@ public abstract class Service<T extends Configuration> {
         // create the two environments (admin and service)
         String adminName = name + "-" + Constants.ADMIN_IDENTIFIER;
         AdminEnvironment admin = new AdminEnvironment(adminName);
-        initializeJerseyApplication(validator, mapper, admin);
+        initializeJerseyApplication(adminName, classLoader, validator, mapper, admin);
 
         String serviceName = name + "-" + Constants.SERVICE_IDENTIFIER;
         ServiceEnvironment service = new ServiceEnvironment(serviceName);
-        initializeJerseyApplication(validator, mapper, service);
+        initializeJerseyApplication(serviceName, classLoader, validator, mapper, service);
 
         // register some basic admin commands
         admin.registerCommand("gc", GarbageCollectionCommand.class);
@@ -217,7 +220,13 @@ public abstract class Service<T extends Configuration> {
         lifecycle.start();
     }
 
-    private void initializeJerseyApplication(Validator validator, ObjectMapper mapper, ApplicationEnvironment environment) {
+    private void initializeJerseyApplication(String applicationName, ClassLoader classLoader, Validator validator, ObjectMapper mapper, ApplicationEnvironment environment) {
+        // set our name
+        environment.getResourceConfig().setApplicationName(applicationName);
+
+        // set the class-loader to be the system-wide class loader
+        environment.getResourceConfig().setClassLoader(classLoader);
+
         // set default properties
         environment.addProperty(CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
         environment.addProperty(ServerProperties.WADL_FEATURE_DISABLE, true);
