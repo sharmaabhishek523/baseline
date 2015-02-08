@@ -47,7 +47,7 @@ public final class TestConfiguration {
      * <p/>
      * See http://gafter.blogspot.com/2006/12/super-type-tokens.html
      */
-    @SuppressWarnings("unused")
+    @SuppressWarnings("unused") // parameter 'T' is unused
     public abstract static class ConfigurationHolder<T extends Configuration> {
 
         // this space intentionally left blank

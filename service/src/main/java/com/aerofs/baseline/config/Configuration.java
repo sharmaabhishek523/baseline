@@ -21,6 +21,7 @@ import com.aerofs.baseline.logging.LoggingConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.base.Objects;
+import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,10 +70,26 @@ public abstract class Configuration {
     }
 
     @SuppressWarnings("unchecked")
-    public static <C extends Configuration> C loadYAMLConfigurationFromStream(Class<?> derived, InputStream stream) throws IOException {
+    public static <C extends Configuration> C loadYAMLConfigurationFromResourcesUncheckedThrow(Class<?> derived, String configFile) {
+        try {
+            return loadYAMLConfigurationFromResources(derived, configFile);
+        } catch (Exception e) {
+            throw new RuntimeException("fail load configuration from " + configFile);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <C extends Configuration> C loadYAMLConfigurationFromResources(Class<?> derived, String configFile) throws IOException {
+        try (FileInputStream in = new FileInputStream(Resources.getResource(configFile).getFile())) {
+            return Configuration.loadYAMLConfigurationFromStream(derived, in);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <C extends Configuration> C loadYAMLConfigurationFromStream(Class<?> derived, InputStream configStream) throws IOException {
         ObjectMapper configurationMapper = new ObjectMapper(new YAMLFactory());
         Class<?> configurationTypeClass = Generics.getTypeParameter(derived, Configuration.class);
-        return (C) configurationMapper.readValue(stream, configurationTypeClass);
+        return (C) configurationMapper.readValue(configStream, configurationTypeClass);
     }
 
     public static <C extends Configuration> void validateConfiguration(Validator validator, C configuration) throws ConstraintViolationException {
