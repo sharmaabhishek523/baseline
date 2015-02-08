@@ -51,7 +51,6 @@ To report bugs or request features please contact:
 * Add substantially more tests
 * Think about async request processing (investigate jersey internals)
 * Specify application request executor
-* Separate auth from baseline (provide an auth SPI - only do after implementing aero auth)
 * Make auth and db baseline *modules* (adds injection, lifecycles, etc. i.e. a package of 'stuff')
 * I feel like Environment can be the hub around which modules operate
 * Add documentation (jekyll?)
@@ -81,4 +80,5 @@ To report bugs or request features please contact:
 * Re-enable use of low-byte-watermark
 * Think about streaming http use-case
 * Split auth, http and core apart
-* Clean up injection
+* Use a single injector across the system (remove injector hierarchy)
+* Allow admin/service components to be disabled
