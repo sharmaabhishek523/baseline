@@ -21,13 +21,14 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.logging.FormattedLog;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
 final class LogbackSQLLog extends FormattedLog {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DBI.class);
 
-    LogbackSQLLog() {
-        // noop
-    }
+    LogbackSQLLog() { }
 
     @Override
     protected boolean isEnabled() {

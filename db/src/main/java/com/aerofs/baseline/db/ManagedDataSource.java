@@ -21,18 +21,24 @@ import org.apache.tomcat.dbcp.dbcp2.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 
+@ThreadSafe
+@Singleton
 public final class ManagedDataSource implements Managed, DataSource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ManagedDataSource.class);
 
     private final BasicDataSource dataSource;
 
+    @Inject
     public ManagedDataSource(BasicDataSource dataSource) {
         this.dataSource = dataSource;
     }
@@ -49,7 +55,7 @@ public final class ManagedDataSource implements Managed, DataSource {
         try {
             dataSource.close();
         } catch (SQLException e) {
-            LOGGER.warn("fail close connections", e);
+            LOGGER.warn("fail close datasource connections", e);
         }
     }
 

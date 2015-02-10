@@ -16,24 +16,30 @@
 
 package com.aerofs.baseline.db;
 
-import com.aerofs.baseline.metrics.MetricRegistries;
-import com.codahale.metrics.jdbi.InstrumentedTimingCollector;
-import org.skife.jdbi.v2.DBI;
+import javax.annotation.concurrent.Immutable;
+import java.sql.Connection;
 
-import javax.sql.DataSource;
+@SuppressWarnings("unused")
+@Immutable
+public enum TransactionIsolation {
 
-public abstract class DBIInstances {
+    NONE(Connection.TRANSACTION_NONE),
 
-    public static DBI newDBI(DataSource dataSource) {
-        DBI dbi = new DBI(dataSource);
+    READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),
 
-        dbi.setSQLLog(new LogbackSQLLog());
-        dbi.setTimingCollector(new InstrumentedTimingCollector(MetricRegistries.getRegistry()));
+    READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED),
 
-        return dbi;
+    REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ),
+
+    SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE);
+
+    private final int level;
+
+    TransactionIsolation(int level) {
+        this.level = level;
     }
 
-    private DBIInstances() {
-        // to prevent instantiation by subclasses
+    public int getLevel() {
+        return level;
     }
 }

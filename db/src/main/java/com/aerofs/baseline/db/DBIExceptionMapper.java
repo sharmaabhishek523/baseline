@@ -18,22 +18,27 @@ package com.aerofs.baseline.db;
 
 import org.skife.jdbi.v2.exceptions.DBIException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Providers;
 
+@SuppressWarnings({"rawtypes", "unchecked", "unused"})
+@ThreadSafe
 @Singleton
 public final class DBIExceptionMapper implements ExceptionMapper<DBIException> {
 
-    @Context
-    private Providers providers;
+    private final Providers providers;
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    public DBIExceptionMapper(@Context Providers providers) {
+        this.providers = providers;
+    }
+
     @Override
     public Response toResponse(DBIException throwable) {
-        Throwable cause = DBIExceptions.findRootCause(throwable);
+        Throwable cause = Databases.findRootCause(throwable);
         ExceptionMapper actualMapper = providers.getExceptionMapper(cause.getClass());
         return actualMapper.toResponse(cause);
     }

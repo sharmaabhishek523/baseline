@@ -19,7 +19,10 @@ package com.aerofs.baseline.db;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.skife.jdbi.v2.DBI;
 
-// see http://stackoverflow.com/questions/23304404/trouble-creating-a-simple-singleton-class-in-jersey-2-using-built-in-jersey-depe
+import javax.annotation.concurrent.ThreadSafe;
+
+@SuppressWarnings("unused")
+@ThreadSafe
 public final class DBIBinder extends AbstractBinder {
 
     private final DBI dbi;

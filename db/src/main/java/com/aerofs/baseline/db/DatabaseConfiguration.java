@@ -20,10 +20,12 @@ import com.google.common.base.Objects;
 import org.hibernate.validator.constraints.NotBlank;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 @SuppressWarnings("unused")
+@NotThreadSafe
 public final class DatabaseConfiguration {
 
     @NotBlank
@@ -32,23 +34,47 @@ public final class DatabaseConfiguration {
     @NotBlank
     private String url;
 
-    @NotNull
-    private String username = "";
+    private @Nullable String username = null;
+
+    private @Nullable String password = null;
 
     @NotNull
-    private String password = "";
+    private TransactionIsolation defaultTransactionIsolation = DatabaseConstants.DEFAULT_TRANSACTION_ISOLATION;
+
+    private boolean autoCommit = DatabaseConstants.DEFAULT_AUTO_COMMIT_ENABLED;
+
+    private boolean checkConnectionOnBorrow = DatabaseConstants.DEFAULT_CHECK_CONNECTION_ON_BORROW;
+
+    private boolean checkConnectionOnReturn = DatabaseConstants.DEFAULT_CHECK_CONNECTION_ON_RETURN;
 
     @Min(0)
-    private int minIdleConnections = DatabaseConstants.MIN_IDLE_CONNECTIONS;
+    private int minTotalConnections = DatabaseConstants.DEFAULT_MIN_TOTAL_CONNECTIONS;
+
+    @Min(1)
+    private int maxTotalConnections = DatabaseConstants.DEFAULT_MAX_TOTAL_CONNECTIONS;
+
+    @Min(-1)
+    private long acquireConnectionTimeout = DatabaseConstants.DEFAULT_ACQUIRE_CONNECTION_TIMEOUT;
+
+    @Min(-1)
+    private int queryTimeout = (int) DatabaseConstants.DEFAULT_QUERY_TIMEOUT;
 
     @Min(0)
-    private int maxIdleConnections = DatabaseConstants.MAX_IDLE_CONNECTIONS;
+    private int maxIdleConnections = DatabaseConstants.DEFAULT_MAX_IDLE_CONNECTIONS;
 
-    @Min(1)
-    private int maxTotalConnections = DatabaseConstants.MAX_TOTAL_CONNECTIONS;
+    @Min(0)
+    private long closeIdleConnectionAfter = DatabaseConstants.DEFAULT_IDLE_CONNECTION_TIMEOUT;
 
-    @Min(1)
-    private int defaultQueryTimeout = (int) DatabaseConstants.DEFAULT_QUERY_TIMEOUT;
+    private boolean checkConnectionWhenIdle = DatabaseConstants.DEFAULT_CHECK_CONNECTION_WHEN_IDLE;
+
+    @Min(0)
+    private long checkIdleConnectionHealthAfter = DatabaseConstants.DEFAULT_IDLE_CONNECTION_HEALTH_CHECK_TIMEOUT;
+
+    @NotBlank
+    private String validationQuery = DatabaseConstants.DEFAULT_VALIDATION_QUERY;
+
+    @Min(-1)
+    private long validationQueryTimeout = DatabaseConstants.DEFAULT_VALIDATION_QUERY_TIMEOUT;
 
     public String getDriverClass() {
         return driverClass;
@@ -66,36 +92,60 @@ public final class DatabaseConfiguration {
         this.url = url;
     }
 
-    public String getUsername() {
+    public @Nullable String getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(@Nullable String username) {
         this.username = username;
     }
 
-    public String getPassword() {
+    public @Nullable String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(@Nullable String password) {
         this.password = password;
     }
 
-    public int getMinIdleConnections() {
-        return minIdleConnections;
+    public TransactionIsolation getDefaultTransactionIsolation() {
+        return defaultTransactionIsolation;
     }
 
-    public void setMinIdleConnections(int minIdleConnections) {
-        this.minIdleConnections = minIdleConnections;
+    public void setDefaultTransactionIsolation(TransactionIsolation defaultTransactionIsolation) {
+        this.defaultTransactionIsolation = defaultTransactionIsolation;
     }
 
-    public int getMaxIdleConnections() {
-        return maxIdleConnections;
+    public boolean isAutoCommit() {
+        return autoCommit;
     }
 
-    public void setMaxIdleConnections(int maxIdleConnections) {
-        this.maxIdleConnections = maxIdleConnections;
+    public void setAutoCommit(boolean autoCommit) {
+        this.autoCommit = autoCommit;
+    }
+
+    public boolean isCheckConnectionOnBorrow() {
+        return checkConnectionOnBorrow;
+    }
+
+    public void setCheckConnectionOnBorrow(boolean checkConnectionOnBorrow) {
+        this.checkConnectionOnBorrow = checkConnectionOnBorrow;
+    }
+
+    public boolean isCheckConnectionOnReturn() {
+        return checkConnectionOnReturn;
+    }
+
+    public void setCheckConnectionOnReturn(boolean checkConnectionOnReturn) {
+        this.checkConnectionOnReturn = checkConnectionOnReturn;
+    }
+
+    public int getMinTotalConnections() {
+        return minTotalConnections;
+    }
+
+    public void setMinTotalConnections(int minTotalConnections) {
+        this.minTotalConnections = minTotalConnections;
     }
 
     public int getMaxTotalConnections() {
@@ -106,12 +156,68 @@ public final class DatabaseConfiguration {
         this.maxTotalConnections = maxTotalConnections;
     }
 
-    public int getDefaultQueryTimeout() {
-        return defaultQueryTimeout;
+    public long getAcquireConnectionTimeout() {
+        return acquireConnectionTimeout;
     }
 
-    public void setDefaultQueryTimeout(int defaultQueryTimeout) {
-        this.defaultQueryTimeout = defaultQueryTimeout;
+    public void setAcquireConnectionTimeout(long acquireConnectionTimeout) {
+        this.acquireConnectionTimeout = acquireConnectionTimeout;
+    }
+
+    public int getQueryTimeout() {
+        return queryTimeout;
+    }
+
+    public void setQueryTimeout(int queryTimeout) {
+        this.queryTimeout = queryTimeout;
+    }
+
+    public int getMaxIdleConnections() {
+        return maxIdleConnections;
+    }
+
+    public void setMaxIdleConnections(int maxIdleConnections) {
+        this.maxIdleConnections = maxIdleConnections;
+    }
+
+    public long getCloseIdleConnectionAfter() {
+        return closeIdleConnectionAfter;
+    }
+
+    public void setCloseIdleConnectionAfter(long closeIdleConnectionAfter) {
+        this.closeIdleConnectionAfter = closeIdleConnectionAfter;
+    }
+
+    public boolean isCheckConnectionWhenIdle() {
+        return checkConnectionWhenIdle;
+    }
+
+    public void setCheckConnectionWhenIdle(boolean checkConnectionWhenIdle) {
+        this.checkConnectionWhenIdle = checkConnectionWhenIdle;
+    }
+
+    public long getCheckIdleConnectionHealthAfter() {
+        return checkIdleConnectionHealthAfter;
+    }
+
+    public void setCheckIdleConnectionHealthAfter(long checkIdleConnectionHealthAfter) {
+        this.checkIdleConnectionHealthAfter = checkIdleConnectionHealthAfter;
+    }
+
+    public String getValidationQuery() {
+        return validationQuery;
+    }
+
+    public void setValidationQuery(String validationQuery) {
+        this.validationQuery = validationQuery;
+    }
+
+    public long getValidationQueryTimeout() {
+        return validationQueryTimeout;
+    }
+
+    public void setValidationQueryTimeout(int validationQueryTimeout) {
+        this.validationQueryTimeout = validationQueryTimeout;
     }
 
     @Override
@@ -120,19 +226,48 @@ public final class DatabaseConfiguration {
         if (o == null || getClass() != o.getClass()) return false;
 
         DatabaseConfiguration other = (DatabaseConfiguration) o;
-        return Objects.equal(driverClass, other.driverClass)
-                && Objects.equal(url, other.url)
-                && Objects.equal(username, other.username)
-                && Objects.equal(password, other.password)
-                && minIdleConnections == other.minIdleConnections
-                && maxIdleConnections == other.maxIdleConnections
-                && maxTotalConnections == other.maxTotalConnections
-                && defaultQueryTimeout == other.defaultQueryTimeout;
+
+        return Objects.equal(autoCommit, other.autoCommit) &&
+                Objects.equal(checkConnectionOnBorrow, other.checkConnectionOnBorrow) &&
+                Objects.equal(checkConnectionOnReturn, other.checkConnectionOnReturn) &&
+                Objects.equal(minTotalConnections, other.minTotalConnections) &&
+                Objects.equal(maxTotalConnections, other.maxTotalConnections) &&
+                Objects.equal(acquireConnectionTimeout, other.acquireConnectionTimeout) &&
+                Objects.equal(queryTimeout, other.queryTimeout) &&
+                Objects.equal(maxIdleConnections, other.maxIdleConnections) &&
+                Objects.equal(closeIdleConnectionAfter, other.closeIdleConnectionAfter) &&
+                Objects.equal(checkConnectionWhenIdle, other.checkConnectionWhenIdle) &&
+                Objects.equal(checkIdleConnectionHealthAfter, other.checkIdleConnectionHealthAfter) &&
+                Objects.equal(validationQueryTimeout, other.validationQueryTimeout) &&
+                Objects.equal(driverClass, other.driverClass) &&
+                Objects.equal(url, other.url) &&
+                Objects.equal(username, other.username) &&
+                Objects.equal(password, other.password) &&
+                Objects.equal(defaultTransactionIsolation, other.defaultTransactionIsolation) &&
+                Objects.equal(validationQuery, other.validationQuery);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(driverClass, url, username, password, minIdleConnections, maxIdleConnections, maxTotalConnections, defaultQueryTimeout);
+        return Objects.hashCode(
+                driverClass,
+                url,
+                username,
+                password,
+                defaultTransactionIsolation,
+                autoCommit,
+                checkConnectionOnBorrow,
+                checkConnectionOnReturn,
+                minTotalConnections,
+                maxTotalConnections,
+                acquireConnectionTimeout,
+                queryTimeout,
+                maxIdleConnections,
+                closeIdleConnectionAfter,
+                checkConnectionWhenIdle,
+                checkIdleConnectionHealthAfter,
+                validationQuery,
+                validationQueryTimeout);
     }
 
     @Override
@@ -143,10 +278,20 @@ public final class DatabaseConfiguration {
                 .add("url", url)
                 .add("username", username)
                 .add("password", password)
-                .add("minIdleConnections", minIdleConnections)
-                .add("maxIdleConnections", maxIdleConnections)
+                .add("defaultTransactionIsolation", defaultTransactionIsolation)
+                .add("autoCommit", autoCommit)
+                .add("checkConnectionOnBorrow", checkConnectionOnBorrow)
+                .add("checkConnectionOnReturn", checkConnectionOnReturn)
+                .add("minTotalConnections", minTotalConnections)
                 .add("maxTotalConnections", maxTotalConnections)
-                .add("defaultQueryTimeout", defaultQueryTimeout)
+                .add("acquireConnectionTimeout", acquireConnectionTimeout)
+                .add("queryTimeout", queryTimeout)
+                .add("maxIdleConnections", maxIdleConnections)
+                .add("closeIdleConnectionAfter", closeIdleConnectionAfter)
+                .add("checkConnectionWhenIdle", checkConnectionWhenIdle)
+                .add("checkIdleConnectionHealthAfter", checkIdleConnectionHealthAfter)
+                .add("validationQuery", validationQuery)
+                .add("validationQueryTimeout", validationQueryTimeout)
                 .toString();
     }
 }
