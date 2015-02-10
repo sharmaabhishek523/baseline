@@ -170,7 +170,7 @@ public abstract class Service<T extends Configuration> {
         RootEnvironment root = new RootEnvironment(injector, lifecycle, validator, mapper, authenticators);
 
         // inject system-wide instances
-        root.addInjectableNamedConstant(Constants.APP_NAME_KEY, name);
+        root.addInjectableNamedConstant(Constants.SERVICE_NAME_INJECTION_KEY, name);
         root.addInjectableSingletonInstance(validator, Validator.class);
         root.addInjectableSingletonInstance(mapper);
         root.addInjectableSingletonInstance(injector);

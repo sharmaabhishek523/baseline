@@ -53,7 +53,7 @@ public abstract class Constants {
     public static final int DEFAULT_COMMAND_RESPONSE_ENTITY_LENGTH = 1024;
 
     // injectable
-    public static final String APP_NAME_KEY = "APP_NAME_KEY";
+    public static final String SERVICE_NAME_INJECTION_KEY = "SERVICE_NAME";
 
     private Constants() {
         // to prevent instantiation by subclasses
