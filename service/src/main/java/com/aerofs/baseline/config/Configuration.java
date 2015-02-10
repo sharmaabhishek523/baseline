@@ -74,7 +74,7 @@ public abstract class Configuration {
         try {
             return loadYAMLConfigurationFromResources(derived, configFile);
         } catch (Exception e) {
-            throw new RuntimeException("fail load configuration from " + configFile);
+            throw new RuntimeException("fail load " + configFile, e);
         }
     }
 
