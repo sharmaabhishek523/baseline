@@ -201,7 +201,7 @@ public abstract class Service<T extends Configuration> {
 
         LOGGER.trace("registered injectables:");
         for (ActiveDescriptor<?> descriptor : injector.getDescriptors()) {
-            LOGGER.trace("registered i:{} d:{}", descriptor.getImplementationClass(), descriptor);
+            LOGGER.trace("registered c:{} s:{} r:{} d:{}", descriptor.getImplementation(), descriptor.getScope(), descriptor.isReified(), descriptor);
         }
 
         // initialize the admin http server
