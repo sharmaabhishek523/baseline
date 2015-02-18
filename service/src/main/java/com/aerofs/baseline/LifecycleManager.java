@@ -79,7 +79,7 @@ final class LifecycleManager {
 
         @Override
         public void start() throws Exception {
-            handle = Injection.getSingletonServiceHandle(rootLocator, type);
+            handle = Injection.getServiceHandle(rootLocator, type);
             handle.getService().start();
         }
 

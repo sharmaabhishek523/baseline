@@ -119,21 +119,24 @@ public final class Environment {
     }
 
     /**
-     * Get a singleton instance of type {@code T}.
+     * Get an instance of type {@code T}.
      * <br>
      * An instance of {@code T} will be located using HK2.
-     * If no instance currently exists, one is created and cached
-     * by the underlying {@code ServiceLocator}, otherwise
-     * an existing instance is returned.
+     * If no instance currently exists, one is created by the
+     * underlying {@code ServiceLocator}, otherwise an existing instance
+     * is returned.
+     * <br>
+     * The lifecycle of this object is <strong>NOT</strong>
+     * managed by HK2. It is highly recommended that this method is
+     * <strong>ONLY</strong> used to get singleton instances.
      *
      * @param implementationClass type of the instance to be located/created
      * @param <T> type of the instance to be located/created
      * @return valid, non-null instance of {@code implementationClass}
-     * @throws IllegalStateException if a valid instance cannot be constructed, or if
-     * {@code implementationClass} does not have singleton scope
+     * @throws IllegalStateException if a valid instance cannot be constructed
      */
-    public <T> T getSingletonInstance(Class<T> implementationClass) {
-        ServiceHandle<T> handle = Injection.getSingletonServiceHandle(rootLocator, implementationClass);
+    public <T> T getInstance(Class<T> implementationClass) {
+        ServiceHandle<T> handle = Injection.getServiceHandle(rootLocator, implementationClass);
         return handle.getService();
     }
 

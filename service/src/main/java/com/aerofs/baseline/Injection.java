@@ -20,31 +20,26 @@ import com.google.common.base.Preconditions;
 import org.glassfish.hk2.api.ServiceHandle;
 import org.glassfish.hk2.api.ServiceLocator;
 
-import javax.inject.Singleton;
-
 /**
  * Utility methods for HK2 injection.
  */
 public abstract class Injection {
 
     /**
-     * Get the {@link ServiceHandle} to a <strong>singleton</strong>
-     * instance of type {@code T}.
+     * Get the {@link ServiceHandle} to an instance of type {@code T}.
      *
      * @param locator {@code ServiceLocator} instance used to locate the singleton instance of type {@code T}
-     * @param singletonClass type of the service to be located
+     * @param implementationClass type of the service to be located
      * @param <T> type-parameter identifying the type of the service to be located
-     * @return valid {@code ServiceHandle} that points to a <strong>active</strong> singleton instance of type {@code T}
-     *
-     * @throws IllegalStateException if <strong>no singleton</strong> instance satisfying {@code T} could be found
+     * @return valid {@code ServiceHandle} that points to a <strong>active</strong> instance of type {@code T}
+     * @throws IllegalStateException if no instance satisfying {@code T} could be found
      */
-    public static <T> ServiceHandle<T> getSingletonServiceHandle(ServiceLocator locator, Class<T> singletonClass) {
-        ServiceHandle<T> handle = locator.getServiceHandle(singletonClass);
+    public static <T> ServiceHandle<T> getServiceHandle(ServiceLocator locator, Class<T> implementationClass) {
+        ServiceHandle<T> handle = locator.getServiceHandle(implementationClass);
 
-        Preconditions.checkState(handle != null, "fail locate managed type %s", singletonClass.getSimpleName());
-        Preconditions.checkState(handle.getActiveDescriptor().getScopeAnnotation() == Singleton.class, "managed type %s is not a singleton", singletonClass.getSimpleName());
-        Preconditions.checkState(handle.getService() != null, "fail create managed instance of %s", singletonClass.getSimpleName());
-        Preconditions.checkState(handle.isActive(), "%s is no longer active", singletonClass.getSimpleName());
+        Preconditions.checkState(handle != null, "fail locate type %s", implementationClass.getSimpleName());
+        Preconditions.checkState(handle.getService() != null, "fail create instance of %s", implementationClass.getSimpleName());
+        Preconditions.checkState(handle.isActive(), "%s is no longer active", implementationClass.getSimpleName());
 
         return handle;
     }
