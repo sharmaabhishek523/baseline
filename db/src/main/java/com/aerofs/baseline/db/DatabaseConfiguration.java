@@ -72,7 +72,7 @@ public final class DatabaseConfiguration {
     private boolean checkConnectionWhenIdle = DatabaseConstants.DEFAULT_CHECK_CONNECTION_WHEN_IDLE;
 
     @Min(0)
-    private long checkIdleConnectionHealthAfter = DatabaseConstants.DEFAULT_IDLE_CONNECTION_HEALTH_CHECK_TIMEOUT;
+    private long idleConnectionCheckInterval = DatabaseConstants.DEFAULT_IDLE_CONNECTION_HEALTH_CHECK_TIMEOUT;
 
     @NotBlank
     private String validationQuery = DatabaseConstants.DEFAULT_VALIDATION_QUERY;
@@ -200,12 +200,12 @@ public final class DatabaseConfiguration {
         this.checkConnectionWhenIdle = checkConnectionWhenIdle;
     }
 
-    public long getCheckIdleConnectionHealthAfter() {
-        return checkIdleConnectionHealthAfter;
+    public long getIdleConnectionCheckInterval() {
+        return idleConnectionCheckInterval;
     }
 
-    public void setCheckIdleConnectionHealthAfter(long checkIdleConnectionHealthAfter) {
-        this.checkIdleConnectionHealthAfter = checkIdleConnectionHealthAfter;
+    public void setIdleConnectionCheckInterval(long idleConnectionCheckInterval) {
+        this.idleConnectionCheckInterval = idleConnectionCheckInterval;
     }
 
     public String getValidationQuery() {
@@ -241,7 +241,7 @@ public final class DatabaseConfiguration {
                 Objects.equal(maxIdleConnections, other.maxIdleConnections) &&
                 Objects.equal(closeIdleConnectionAfter, other.closeIdleConnectionAfter) &&
                 Objects.equal(checkConnectionWhenIdle, other.checkConnectionWhenIdle) &&
-                Objects.equal(checkIdleConnectionHealthAfter, other.checkIdleConnectionHealthAfter) &&
+                Objects.equal(idleConnectionCheckInterval, other.idleConnectionCheckInterval) &&
                 Objects.equal(validationQueryTimeout, other.validationQueryTimeout) &&
                 Objects.equal(driverClass, other.driverClass) &&
                 Objects.equal(url, other.url) &&
@@ -269,7 +269,7 @@ public final class DatabaseConfiguration {
                 maxIdleConnections,
                 closeIdleConnectionAfter,
                 checkConnectionWhenIdle,
-                checkIdleConnectionHealthAfter,
+                idleConnectionCheckInterval,
                 validationQuery,
                 validationQueryTimeout);
     }
@@ -293,7 +293,7 @@ public final class DatabaseConfiguration {
                 .add("maxIdleConnections", maxIdleConnections)
                 .add("closeIdleConnectionAfter", closeIdleConnectionAfter)
                 .add("checkConnectionWhenIdle", checkConnectionWhenIdle)
-                .add("checkIdleConnectionHealthAfter", checkIdleConnectionHealthAfter)
+                .add("idleConnectionCheckInterval", idleConnectionCheckInterval)
                 .add("validationQuery", validationQuery)
                 .add("validationQueryTimeout", validationQueryTimeout)
                 .toString();
