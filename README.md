@@ -80,3 +80,4 @@ To report bugs or request features please contact:
 * Split auth, http and core apart
 * Use a single injector across the system (remove injector hierarchy)
 * Allow admin/service components to be disabled
+* Configuration exceptions do not print *why* they fail

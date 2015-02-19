@@ -21,6 +21,16 @@ import org.skife.jdbi.v2.DBI;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * Implementation of an HK2 {@code Binder} that injects
+ * {@link DBI} instances into HK2-managed or
+ * {@link javax.ws.rs.core.Context}-annotated
+ * JAX-RS objects and methods.
+ * <br>
+ * An instance of this class can be added either as
+ * a JAX-RS {@link javax.ws.rs.ext.Provider} for a Jersey application
+ * or to an HK2 {@link org.glassfish.hk2.api.ServiceLocator}.
+ */
 @SuppressWarnings("unused")
 @ThreadSafe
 public final class DBIBinder extends AbstractBinder {

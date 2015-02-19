@@ -25,6 +25,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Providers;
 
+/**
+ * Specialization of {@code BaseExceptionMapper} that finds
+ * the underlying cause of an {@code DBIException}, locates
+ * the appropriate {@link ExceptionMapper} and uses it to
+ * render the exception log message and HTTP response.
+ */
 @SuppressWarnings({"rawtypes", "unchecked", "unused"})
 @ThreadSafe
 @Singleton

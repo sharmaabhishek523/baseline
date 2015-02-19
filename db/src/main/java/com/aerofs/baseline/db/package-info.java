@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Classes used to implement and support database access for baseline services.
+ */
 @ParametersAreNonnullByDefault package com.aerofs.baseline.db;
 
 import javax.annotation.ParametersAreNonnullByDefault;

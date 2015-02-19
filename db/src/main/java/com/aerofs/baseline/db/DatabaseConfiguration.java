@@ -24,18 +24,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+/**
+ * Represents all the values that can be used to
+ * configure the service's database connection pool.
+ */
 @SuppressWarnings("unused")
 @NotThreadSafe
 public final class DatabaseConfiguration {
-
-    // TODO (AG): add the following parameters
-    /*
-    bifrost.db.maxWaitForConnection = 1000
-    bifrost.db.validationQuery = "SELECT 1"
-    bifrost.db.checkConnectionWhileIdle = true
-    bifrost.db.checkConnectionHealthWhenIdleFor = 60000
-    bifrost.db.closeConnectionIfIdleFor = 60000
-    */
 
     @NotBlank
     private String driverClass;

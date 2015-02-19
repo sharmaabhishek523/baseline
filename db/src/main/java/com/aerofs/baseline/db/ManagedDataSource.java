@@ -30,6 +30,15 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 
+/**
+ * Wraps a {@link DataSource} instance and exposes the
+ * {@link Managed} interface, allowing the wrapped instance's
+ * lifecycle to be managed by baseline.
+ * <br>
+ * All overridden methods from {@code DataSource} are pass-throughs.
+ * These methods should <strong>NOT</strong> be used once
+ * {@link #stop()} is called.
+ */
 @ThreadSafe
 @Singleton
 public final class ManagedDataSource implements Managed, DataSource {
@@ -38,18 +47,23 @@ public final class ManagedDataSource implements Managed, DataSource {
 
     private final BasicDataSource dataSource;
 
+    /**
+     * Constructor.
+     *
+     * @param dataSource valid {@code DataSource} instance whose lifecycle should be managed by baseline
+     */
     @Inject
     public ManagedDataSource(BasicDataSource dataSource) {
         this.dataSource = dataSource;
     }
 
     @Override
-    public synchronized void start() throws Exception {
+    public void start() throws Exception {
         LOGGER.info("start datasource:{}", dataSource.getUrl());
     }
 
     @Override
-    public synchronized void stop() {
+    public void stop() {
         LOGGER.info("stop datasource:{}", dataSource.getUrl());
 
         try {

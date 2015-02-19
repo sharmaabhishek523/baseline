@@ -27,10 +27,23 @@ import org.skife.jdbi.v2.exceptions.DBIException;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.sql.DataSource;
 
+/**
+ * Utility methods for instantiating and working
+ * with {@link DataSource} and {@link DBI} instances.
+ */
 @SuppressWarnings("unused")
 @NotThreadSafe
 public abstract class Databases {
 
+    /**
+     * Create a new {@code DBI} instance.
+     * <br>
+     * The created instance will log to the baseline service log,
+     * and collects timing metrics.
+     *
+     * @param dataSource instance of {@code DataSource} from which database connections are sourced
+     * @return valid, new {@code DBI} instance
+     */
     public static DBI newDBI(DataSource dataSource) {
         DBI dbi = new DBI(dataSource);
 
@@ -40,6 +53,13 @@ public abstract class Databases {
         return dbi;
     }
 
+    /**
+     * Create a new {@link DataSource} whose lifecycle is managed by baseline.
+     *
+     * @param environment {@code Environment} instance for this baseline service
+     * @param database database configuration block for configuring the {@code DataSource}
+     * @return valid, new {@code DataSource} instance
+     */
     public static ManagedDataSource newManagedDataSource(Environment environment, DatabaseConfiguration database) {
         BasicDataSource dataSource = (BasicDataSource) newDataSource(database);
         registerGauges(dataSource);
@@ -50,6 +70,16 @@ public abstract class Databases {
         return managed;
     }
 
+    /**
+     * Create a new {@code DataSource}.
+     * <br>
+     * The lifecycle of the created instance is <strong>NOT</strong>
+     * managed by baseline. To create a {@code DataSource} whose lifecycle
+     * is managed, use {@link #newManagedDataSource(Environment, DatabaseConfiguration)}.
+     *
+     * @param database database configuration block for configuring the {@code DataSource}
+     * @return valid, new {@code DataSource} instance
+     */
     public static DataSource newDataSource(DatabaseConfiguration database) {
         BasicDataSource dataSource = new BasicDataSource();
 
@@ -57,6 +87,7 @@ public abstract class Databases {
         dataSource.setDriverClassName(database.getDriverClass());
 
         // username and password
+        // only sets them if the value is not null/empty
         if (!(database.getUsername() == null || database.getUsername().isEmpty())) {
             dataSource.setUsername(database.getUsername());
         }
@@ -76,7 +107,7 @@ public abstract class Databases {
         dataSource.setMaxWaitMillis(database.getAcquireConnectionTimeout());
         dataSource.setDefaultQueryTimeout(database.getQueryTimeout() <= 0 ? null : database.getQueryTimeout());
         dataSource.setTestWhileIdle(database.isCheckConnectionWhenIdle());
-        dataSource.setTimeBetweenEvictionRunsMillis(database.getCheckIdleConnectionHealthAfter());
+        dataSource.setTimeBetweenEvictionRunsMillis(database.getIdleConnectionCheckInterval());
         dataSource.setMinEvictableIdleTimeMillis(database.getCloseIdleConnectionAfter());
         dataSource.setValidationQuery(database.getValidationQuery());
         dataSource.setValidationQueryTimeout((int) database.getValidationQueryTimeout());
@@ -91,6 +122,17 @@ public abstract class Databases {
         MetricRegistries.getRegistry().register(MetricRegistries.name("db", dataSource.getUrl(), "idle"), (Gauge<Integer>) dataSource::getNumIdle);
     }
 
+    /**
+     * Convenience method for introspecting the
+     * underlying cause of a {@code DBIException}.
+     * <br>
+     * This method can be used to find out what triggered
+     * an exception inside a DBI transaction.
+     *
+     * @param exception instance of {@code DBIException} from which to extract the failure cause
+     * @return {@code exception} itself if no {@code non-DBIException} was found to be the cause,
+     * otherwise the <strong>first</strong> {@code non-DBIException} instance
+     */
     public static Throwable findExceptionRootCause(DBIException exception) {
         Throwable underlying = exception;
 

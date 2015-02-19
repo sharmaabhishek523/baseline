@@ -23,6 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * JDBI logger that logs messages to the baseline service log.
+ * <br>
+ * Logging is only enabled at <strong>TRACE</strong> level or lower.
+ */
 @ThreadSafe
 final class LogbackSQLLog extends FormattedLog {
 

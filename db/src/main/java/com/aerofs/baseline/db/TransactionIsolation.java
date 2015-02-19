@@ -19,6 +19,13 @@ package com.aerofs.baseline.db;
 import javax.annotation.concurrent.Immutable;
 import java.sql.Connection;
 
+/**
+ * Represents the various transaction isolation levels.
+ * <br>
+ * These levels are identical to those
+ * in {@link Connection}, and are defined
+ * within an enum to enforce type-safety.
+ */
 @SuppressWarnings("unused")
 @Immutable
 public enum TransactionIsolation {
@@ -35,10 +42,22 @@ public enum TransactionIsolation {
 
     private final int level;
 
+    /**
+     * Constructor.
+     *
+     * @param level integer that corresponds to the equivalent
+     *              transaction isolation level in {@code Connection}
+     */
     TransactionIsolation(int level) {
         this.level = level;
     }
 
+    /**
+     * Get the integer that corresponds to the equivalent
+     * transaction isolation level in {@link Connection}.
+     *
+     * @return integer that corresponds to the equivalent transaction isolation level in {@code Connection}
+     */
     public int getLevel() {
         return level;
     }
