@@ -47,6 +47,8 @@ public final class HttpConfiguration {
     @Min(1)
     private int numRequestProcessingThreads = com.aerofs.baseline.http.Constants.DEFAULT_NUM_REQUEST_PROCESSING_THREADS;
 
+    private boolean enabled = true;
+
     public String getHost() {
         return host;
     }
@@ -105,6 +107,14 @@ public final class HttpConfiguration {
         this.numRequestProcessingThreads = numRequestProcessingThreads;
     }
 
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
@@ -117,12 +127,13 @@ public final class HttpConfiguration {
                 && idleTimeout == other.idleTimeout
                 && maxAcceptQueueSize == other.maxAcceptQueueSize
                 && numNetworkThreads == other.numNetworkThreads
-                && numRequestProcessingThreads == other.numRequestProcessingThreads;
+                && numRequestProcessingThreads == other.numRequestProcessingThreads
+                && enabled == other.enabled;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(host, port, directMemoryBacked, idleTimeout, maxAcceptQueueSize, numNetworkThreads, numRequestProcessingThreads);
+        return Objects.hashCode(host, port, directMemoryBacked, idleTimeout, maxAcceptQueueSize, numNetworkThreads, numRequestProcessingThreads, enabled);
     }
 
     @Override
@@ -136,6 +147,7 @@ public final class HttpConfiguration {
                 .add("maxAcceptQueueSize", maxAcceptQueueSize)
                 .add("numNetworkThreads", numNetworkThreads)
                 .add("numRequestProcessingThreads", numRequestProcessingThreads)
+                .add("enabled", enabled)
                 .toString();
     }
 }

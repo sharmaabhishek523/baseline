@@ -232,16 +232,20 @@ public abstract class Service<T extends Configuration> {
         listInjected(rootLocator);
 
         // initialize the admin http server
-        ApplicationHandler adminHandler = new ApplicationHandler(environment.getAdminResourceConfig(), null, rootLocator);
-        listInjected(adminHandler.getServiceLocator());
-        HttpServer adminHttpServer = new HttpServer(Constants.ADMIN_IDENTIFIER, configuration.getAdmin(), lifecycleManager.getTimer(), adminHandler);
-        lifecycleManager.add(adminHttpServer);
+        if (configuration.getAdmin().isEnabled()) {
+            ApplicationHandler adminHandler = new ApplicationHandler(environment.getAdminResourceConfig(), null, rootLocator);
+            listInjected(adminHandler.getServiceLocator());
+            HttpServer adminHttpServer = new HttpServer(Constants.ADMIN_IDENTIFIER, configuration.getAdmin(), lifecycleManager.getTimer(), adminHandler);
+            lifecycleManager.add(adminHttpServer);
+        }
 
         // initialize the service http server
-        ApplicationHandler serviceHandler = new ApplicationHandler(environment.getServiceResourceConfig(), null, rootLocator);
-        listInjected(serviceHandler.getServiceLocator());
-        HttpServer serviceHttpServer = new HttpServer(Constants.SERVICE_IDENTIFIER, configuration.getService(), lifecycleManager.getTimer(), serviceHandler);
-        lifecycleManager.add(serviceHttpServer);
+        if (configuration.getService().isEnabled()) {
+            ApplicationHandler serviceHandler = new ApplicationHandler(environment.getServiceResourceConfig(), null, rootLocator);
+            listInjected(serviceHandler.getServiceLocator());
+            HttpServer serviceHttpServer = new HttpServer(Constants.SERVICE_IDENTIFIER, configuration.getService(), lifecycleManager.getTimer(), serviceHandler);
+            lifecycleManager.add(serviceHttpServer);
+        }
 
         // finally, start up all managed services (which includes the two servers above)
         lifecycleManager.start();
