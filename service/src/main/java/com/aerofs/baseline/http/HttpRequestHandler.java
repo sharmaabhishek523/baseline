@@ -210,8 +210,8 @@ final class HttpRequestHandler extends ChannelInboundHandlerAdapter implements C
 
             // create the jersey request object
             final ContainerRequest jerseyRequest = new ContainerRequest(baseUri, URI.create(nettyRequest.uri()), nettyRequest.method().name(), DEFAULT_SECURITY_CONTEXT, PROPERTIES_DELEGATE);
-            jerseyRequest.setProperty(RequestProperties.REQUEST_CONTEXT_CHANNEL_ID_PROPERTY, Channels.getHexText(ctx));
-            jerseyRequest.setProperty(RequestProperties.REQUEST_CONTEXT_REQUEST_ID_PROPERTY, requestId);
+            jerseyRequest.setProperty(RequestProperties.REQUEST_CONTEXT_CHANNEL_ID_PROPERTY, new ChannelId(Channels.getHexText(ctx)));
+            jerseyRequest.setProperty(RequestProperties.REQUEST_CONTEXT_REQUEST_ID_PROPERTY, new RequestId(requestId));
             jerseyRequest.header(Headers.BASELINE_REQUEST_HEADER, requestId); // add request id to headers
             copyHeaders(nettyRequest.headers(), jerseyRequest); // copy headers from message
             jerseyRequest.setEntityStream(entityInputStream);

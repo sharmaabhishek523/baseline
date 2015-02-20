@@ -16,7 +16,9 @@
 
 package com.aerofs.baseline.errors;
 
+import com.aerofs.baseline.http.ChannelId;
 import com.aerofs.baseline.http.Headers;
+import com.aerofs.baseline.http.RequestId;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -35,17 +39,19 @@ import java.util.Random;
 
 public abstract class BaseExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
 
+    private static final String UNKNOWN_ID_LOG_VALUE = "UNKNOWN";
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
     static {
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
-    public static enum ErrorResponseEntity {
+    public enum ErrorResponseEntity {
         NO_STACK_IN_RESPONSE,
         INCLUDE_STACK_IN_RESPONSE,
     }
 
-    public static enum StackLogging {
+    public enum StackLogging {
         ENABLE_LOGGING,
         DISABLE_LOGGING
     }
@@ -53,6 +59,8 @@ public abstract class BaseExceptionMapper<T extends Throwable> implements Except
     private static final Random RANDOM = new Random();
 
     protected final Logger LOGGER = LoggerFactory.getLogger(getClass());
+    @Inject protected Provider<ChannelId> channelIdProvider;
+    @Inject protected Provider<RequestId> requestIdProvider;
 
     private final ErrorResponseEntity responseEntity;
     private final StackLogging stackLogging;
@@ -133,11 +141,21 @@ public abstract class BaseExceptionMapper<T extends Throwable> implements Except
     protected void logFailure(String failureId, T throwable) {
         switch (stackLogging) {
             case ENABLE_LOGGING:
-                LOGGER.warn("request failed fid:{}", failureId, throwable);
+                LOGGER.warn("{}: [{}] request failed fid:{}", getChannelId(), getRequestId(), failureId, throwable);
                 break;
             default:
-                LOGGER.warn("request failed fid:{}", failureId);
+                LOGGER.warn("{}: [{}] request failed fid:{}", getChannelId(), getRequestId(), failureId);
                 break;
         }
+    }
+
+    private String getChannelId() {
+        ChannelId id = channelIdProvider.get();
+        return id == null ? UNKNOWN_ID_LOG_VALUE : id.getValue();
+    }
+
+    private @Nullable String getRequestId() {
+        RequestId id = requestIdProvider.get();
+        return id == null ? UNKNOWN_ID_LOG_VALUE : id.getValue();
     }
 }

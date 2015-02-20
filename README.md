@@ -47,36 +47,32 @@ To report bugs or request features please contact:
 * "Allen George" <allen.george@gmail.com>
 
 ## TODO
-* ExceptionMapper does not have access to the request
-* Add substantially more tests
-* Think about async request processing (investigate jersey internals)
-* Specify application request executor
 * Make auth and db baseline *modules* (adds injection, lifecycles, etc. i.e. a package of 'stuff')
 * I feel like Environment can be the hub around which modules operate
-* Add documentation (jekyll?)
-* Compare with current dropwizard
-* Simplify base exception mapper interface
+* Add substantially more tests
 * Test all default exception mappers
 * Test error conditions (for example, when incorrect JSON is sent to service)
+* Simplify base exception mapper interface
+* Reduce the number of supplied exceptions
+* Configuration exceptions do not print *why* they fail
+* Add ability to set number of accept threads
+* Flow control incoming connections
+* Properly flow control runnables
+* Specify application request executor
+* Do not run async tasks in timer thread
+* Think about async request processing (investigate jersey internals)
+* Probably can have the async thread pool and the request processing thread pool be the same
+* Do single decode (test performance implications?)
+* Add documentation (jekyll?)
 * Create apache-http-style request log
 * Figure out where SecureRandom is used and why (LazyUid maybe)
 * Change timers to use micros instead of nanos
-* Add ability to set number of accept threads
 * Re-add CORS filter
-* Flow control incoming connections
-* Probably can have the async thread pool and the request processing thread pool be the same
-* Do single decode (test performance implications?)
-* Provide channel id and request id via injectors
-* Have nginx add request headers
-* Have an HTTP client that adds on headers to do distributed tracing
+* Allow user to specify tracing header
 * log direct memory metrics
 * Change loglevel via task
-* Do not run async tasks in timer thread
-* Properly flow control runnables
 * Commands should be able to return an error code (without exception)
-* Reduce the number of supplied exceptions
 * Re-enable use of low-byte-watermark
 * Think about streaming http use-case
 * Split auth, http and core apart
 * Use a single injector across the system (remove injector hierarchy)
-* Configuration exceptions do not print *why* they fail

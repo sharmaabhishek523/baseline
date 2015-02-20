@@ -273,6 +273,8 @@ public abstract class Service<T extends Configuration> {
         resourceConfig.register(ConstraintViolationExceptionMapper.class);
 
         // add other providers
+        resourceConfig.register(new ChannelIdBinder());
+        resourceConfig.register(new RequestIdBinder());
         resourceConfig.register(AuthenticationFilter.class);
         resourceConfig.register(RolesAllowedDynamicFeature.class);
         resourceConfig.register(new ValidatingJacksonJaxbJsonProvider(validator, mapper, JacksonJaxbJsonProvider.DEFAULT_ANNOTATIONS));
