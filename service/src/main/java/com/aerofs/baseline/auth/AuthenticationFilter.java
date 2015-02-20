@@ -16,6 +16,8 @@
 
 package com.aerofs.baseline.auth;
 
+import com.aerofs.baseline.http.ChannelId;
+import com.aerofs.baseline.http.RequestId;
 import com.aerofs.baseline.http.RequestProperties;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
@@ -98,6 +100,14 @@ public final class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private static void logError(ContainerRequestContext requestContext, Exception e) {
-        LOGGER.warn("{}: [{}] fail authenticate", requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_CHANNEL_ID_PROPERTY), requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_REQUEST_ID_PROPERTY), e);
+        LOGGER.warn("{}: [{}] fail authenticate", getChannelId(requestContext), getRequestId(requestContext), e);
+    }
+
+    private static String getChannelId(ContainerRequestContext requestContext) {
+        return ((ChannelId) requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_CHANNEL_ID_PROPERTY)).getValue();
+    }
+
+    private static String getRequestId(ContainerRequestContext requestContext) {
+        return ((RequestId) requestContext.getProperty(RequestProperties.REQUEST_CONTEXT_REQUEST_ID_PROPERTY)).getValue();
     }
 }

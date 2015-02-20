@@ -18,23 +18,12 @@ package com.aerofs.baseline.http;
 
 import javax.annotation.concurrent.Immutable;
 
-/**
- * Contains headers and header values used by AeroFS backend services.
- */
 @Immutable
 public abstract class Headers {
 
-    /**
-     * Header that encodes the request id associated with the incoming HTTP request.
-     * This request id is <strong>per service</strong>.
-     */
-    public static final String BASELINE_REQUEST_HEADER = "Baseline-Request-Id";
+    public static final String REQUEST_TRACING_HEADER = "Baseline-Request-Id";
 
-    /**
-     * Header that encodes the error id associated with a failed HTTP request.
-     * This error id can be used to correlate a failed request with log messages in the service.
-     */
-    public static final String BASELINE_FAILURE_HEADER = "Baseline-Failure-Id";
+    public static final String REQUEST_FAILURE_ID_HEADER = "Baseline-Failure-Id";
 
     private Headers() {
         // to prevent instantiation by subclasses

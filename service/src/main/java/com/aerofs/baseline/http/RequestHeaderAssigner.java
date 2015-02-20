@@ -37,11 +37,11 @@ final class RequestHeaderAssigner extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) msg;
-            String requestId = request.headers().get(Headers.BASELINE_REQUEST_HEADER);
+            String requestId = request.headers().get(Headers.REQUEST_TRACING_HEADER);
 
             if (requestId == null) {
                 requestId = Integer.toHexString(RANDOM.nextInt(Integer.MAX_VALUE));
-                request.headers().add(Headers.BASELINE_REQUEST_HEADER, requestId);
+                request.headers().add(Headers.REQUEST_TRACING_HEADER, requestId);
             }
 
             LOGGER.debug("{}: [{}] incoming", Channels.getHexText(ctx), requestId);
