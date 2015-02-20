@@ -44,7 +44,7 @@ final class RequestHeaderAssigner extends ChannelInboundHandlerAdapter {
                 request.headers().add(Headers.REQUEST_TRACING_HEADER, requestId);
             }
 
-            LOGGER.debug("{}: [{}] incoming", Channels.getHexText(ctx), requestId);
+            LOGGER.debug("{}: [{}] new http request", Channels.getHexText(ctx), requestId);
         }
 
         super.channelRead(ctx, msg);
