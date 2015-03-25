@@ -15,9 +15,9 @@
  */
 
 dependencies {
-    compile 'com.codahale.metrics:metrics-jdbi:3.0.+'
-    compile 'org.apache.tomcat:tomcat-dbcp:8.0.+'
-    compile 'org.jdbi:jdbi:2.+'
+    compile 'com.codahale.metrics:metrics-jdbi:3.0.2'
+    compile 'org.apache.tomcat:tomcat-dbcp:8.0.20'
+    compile 'org.jdbi:jdbi:2.59'
     compile project(':service')
     testCompile project(':testlib')
 }
