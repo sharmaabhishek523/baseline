@@ -28,10 +28,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderUtil;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders.Names;
+import io.netty.handler.codec.http.HttpHeaders.Values;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
@@ -191,10 +190,10 @@ final class HttpRequestHandler extends ChannelInboundHandlerAdapter implements C
 
             // get a few headers we really care about
             HttpVersion httpVersion = nettyRequest.protocolVersion();
-            boolean keepAlive = HttpHeaderUtil.isKeepAlive(nettyRequest);
-            boolean transferEncodingChunked = HttpHeaderUtil.isTransferEncodingChunked(nettyRequest);
-            boolean continueExpected = HttpHeaderUtil.is100ContinueExpected(nettyRequest);
-            long contentLength = HttpHeaderUtil.getContentLength(nettyRequest, ZERO_CONTENT_LENGTH);
+            boolean keepAlive = HttpHeaders.isKeepAlive(nettyRequest);
+            boolean transferEncodingChunked = HttpHeaders.isTransferEncodingChunked(nettyRequest);
+            boolean continueExpected = HttpHeaders.is100ContinueExpected(nettyRequest);
+            long contentLength = HttpHeaders.getContentLength(nettyRequest, ZERO_CONTENT_LENGTH);
             boolean hasContent = transferEncodingChunked || contentLength > ZERO_CONTENT_LENGTH;
             LOGGER.trace("{}: [{}] rq:{} ka:{} ck:{} ce:{} cl:{}", Channels.getHexText(ctx), requestId, nettyRequest, keepAlive, transferEncodingChunked, continueExpected, contentLength);
 
@@ -367,23 +366,23 @@ final class HttpRequestHandler extends ChannelInboundHandlerAdapter implements C
 
             // add a Connection: Close header if required
             if (!keepAlive) {
-                nettyResponse.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+                nettyResponse.headers().add(Names.CONNECTION, Values.CLOSE);
             }
 
             // create the content buffer if necessary
             if (contentLength < 0) {
                 LOGGER.trace("{}: [{}] chunked", Channels.getHexText(ctx), requestId);
-                nettyResponse.headers().add(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
+                nettyResponse.headers().add(Names.TRANSFER_ENCODING, Values.CHUNKED);
                 ctx.writeAndFlush(nettyResponse);
                 entityOutputStream = new EntityOutputStream(ctx, CONTENT_LENGTH_HISTOGRAM);
             } else if (contentLength == 0) {
                 LOGGER.trace("{}: [{}] no content", Channels.getHexText(ctx), requestId);
-                nettyResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, 0);
+                nettyResponse.headers().add(Names.CONTENT_LENGTH, 0);
                 ctx.write(nettyResponse);
                 entityOutputStream = new EmptyEntityOutputStream(ctx);
             } else {
                 LOGGER.trace("{}: [{}] non-empty body", Channels.getHexText(ctx), requestId);
-                nettyResponse.headers().add(HttpHeaderNames.CONTENT_LENGTH, contentLength);
+                nettyResponse.headers().add(Names.CONTENT_LENGTH, contentLength);
                 ctx.write(nettyResponse); // don't flush now - only do so when all the content is written
                 entityOutputStream = new EntityOutputStream(ctx, CONTENT_LENGTH_HISTOGRAM);
             }
