@@ -71,7 +71,7 @@ public abstract class MySQLHelper {
      * @throws Exception if {@code mysqlDatabase} cannot be created
      */
     public static void makeDatabase(String mysqlPath, String mysqlUser, String mysqlHost, String mysqlPass, String mysqlDatabase) throws Exception {
-        String mysqlCommand = String.format("%s/mysql -u%s -h%s -p%s -e 'create database if not exists %s default character set utf8mb4 collate utf8mb4_bin'", mysqlPath, mysqlUser, mysqlHost, mysqlPass, mysqlDatabase);
+        String mysqlCommand = String.format("%s/mysql -u%s -h%s %s -e 'create database if not exists %s default character set utf8mb4 collate utf8mb4_bin'", mysqlPath, mysqlUser, mysqlHost, getMysqlPassParam(mysqlPass), mysqlDatabase);
         if (runBashCommand(mysqlCommand) != 0) {
             throw new RuntimeException("failed to make db (cmd: " + mysqlCommand  + ")");
         }
@@ -93,12 +93,12 @@ public abstract class MySQLHelper {
     public static void dropDatabase(String mysqlPath, String mysqlUser, String mysqlHost, String mysqlPass, String mysqlDatabase) throws Exception {
         String mysqlCommand;
 
-        mysqlCommand = String.format("%s/mysql -u%s -h%s -p%s -e \"delete from mysql.proc where db='%s' and type='PROCEDURE'\"", mysqlPath, mysqlUser, mysqlHost, mysqlPass, mysqlDatabase);
+        mysqlCommand = String.format("%s/mysql -u%s -h%s %s -e \"delete from mysql.proc where db='%s' and type='PROCEDURE'\"", mysqlPath, mysqlUser, mysqlHost, getMysqlPassParam(mysqlPass), mysqlDatabase);
         if (runBashCommand(mysqlCommand) != 0) {
             throw new RuntimeException("failed to drop pr (cmd: " + mysqlCommand + ")");
         }
 
-        mysqlCommand = String.format("%s/mysql -u%s -h%s -p%s -e 'drop schema if exists %s'", mysqlPath, mysqlUser, mysqlHost, mysqlPass, mysqlDatabase);
+        mysqlCommand = String.format("%s/mysql -u%s -h%s %s -e 'drop schema if exists %s'", mysqlPath, mysqlUser, mysqlHost, getMysqlPassParam(mysqlPass), mysqlDatabase);
         if (runBashCommand(mysqlCommand) != 0) {
             throw new RuntimeException("failed to drop db (cmd: " + mysqlCommand + ")");
         }
@@ -114,6 +114,11 @@ public abstract class MySQLHelper {
         LOGGER.trace("command exit code:{}", p.exitValue());
 
         return p.exitValue();
+    }
+
+    private static String getMysqlPassParam(String mysqlPass)
+    {
+        return mysqlPass.isEmpty() ? "" : String.format("-p%s", mysqlPass);
     }
 
     private MySQLHelper() {
