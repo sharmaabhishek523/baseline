@@ -35,6 +35,8 @@ public final class HttpConfiguration {
 
     private boolean directMemoryBacked = true;
 
+    private boolean useDefaultExceptionMappers = true;
+
     @Min(1)
     private long idleTimeout = com.aerofs.baseline.http.Constants.DEFAULT_IDLE_TIMEOUT;
 
@@ -73,6 +75,16 @@ public final class HttpConfiguration {
     public void setDirectMemoryBacked(boolean directMemoryBacked)
     {
         this.directMemoryBacked = directMemoryBacked;
+    }
+
+    public boolean getUseDefaultExceptionMappers()
+    {
+        return useDefaultExceptionMappers;
+    }
+
+    public void setUseDefaultExceptionMappers(boolean useDefaultExceptionMappers)
+    {
+        this.useDefaultExceptionMappers = useDefaultExceptionMappers;
     }
 
     public long getIdleTimeout() {

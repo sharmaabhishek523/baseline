@@ -25,7 +25,7 @@ import javax.ws.rs.core.Response;
 
 @ThreadSafe
 @Singleton
-final class IllegalArgumentExceptionMapper extends BaseExceptionMapper<IllegalArgumentException> {
+public final class IllegalArgumentExceptionMapper extends BaseExceptionMapper<IllegalArgumentException> {
 
     public IllegalArgumentExceptionMapper() {
         super(ErrorResponseEntity.NO_STACK_IN_RESPONSE, StackLogging.ENABLE_LOGGING);
