@@ -26,6 +26,7 @@ import com.aerofs.baseline.auth.AuthenticationFilter;
 import com.aerofs.baseline.auth.Authenticators;
 import com.aerofs.baseline.config.Configuration;
 import com.aerofs.baseline.config.ConfigurationBinder;
+import com.aerofs.baseline.http.HttpConfiguration;
 import com.aerofs.baseline.http.HttpServer;
 import com.aerofs.baseline.json.JsonProcessingExceptionMapper;
 import com.aerofs.baseline.json.ValidatingJacksonJaxbJsonProvider;
@@ -217,10 +218,10 @@ public abstract class Service<T extends Configuration> {
 
         // create the two environments (admin and service)
         String adminName = name + "-" + Constants.ADMIN_IDENTIFIER;
-        initializeJerseyApplication(adminName, classLoader, validator, mapper, environment.getAdminResourceConfig());
+        initializeJerseyApplication(adminName, classLoader, validator, mapper, environment.getAdminResourceConfig(), configuration.getAdmin());
 
         String serviceName = name + "-" + Constants.SERVICE_IDENTIFIER;
-        initializeJerseyApplication(serviceName, classLoader, validator, mapper, environment.getServiceResourceConfig());
+        initializeJerseyApplication(serviceName, classLoader, validator, mapper, environment.getServiceResourceConfig(), configuration.getService());
 
         // punt to subclasses for further configuration
         init(configuration, environment);
@@ -251,7 +252,7 @@ public abstract class Service<T extends Configuration> {
         lifecycleManager.start();
     }
 
-    private void initializeJerseyApplication(String applicationName, ClassLoader classLoader, Validator validator, ObjectMapper mapper, ResourceConfig resourceConfig) {
+    private void initializeJerseyApplication(String applicationName, ClassLoader classLoader, Validator validator, ObjectMapper mapper, ResourceConfig resourceConfig, HttpConfiguration configuration) {
         // set our name
         resourceConfig.setApplicationName(applicationName);
 
@@ -260,17 +261,19 @@ public abstract class Service<T extends Configuration> {
 
         // set default properties
         resourceConfig.addProperties(ImmutableMap.of(
-                CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, true,
-                ServerProperties.WADL_FEATURE_DISABLE, true,
-                ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true)
+                        CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, true,
+                        ServerProperties.WADL_FEATURE_DISABLE, true,
+                        ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true)
         );
 
         // add exception mappers
-        resourceConfig.register(DefaultExceptionMapper.class);
-        resourceConfig.register(AuthenticationExceptionMapper.class);
-        resourceConfig.register(IllegalArgumentExceptionMapper.class);
-        resourceConfig.register(JsonProcessingExceptionMapper.class);
-        resourceConfig.register(ConstraintViolationExceptionMapper.class);
+        if (configuration.getUseDefaultExceptionMappers()) {
+            resourceConfig.register(DefaultExceptionMapper.class);
+            resourceConfig.register(AuthenticationExceptionMapper.class);
+            resourceConfig.register(IllegalArgumentExceptionMapper.class);
+            resourceConfig.register(JsonProcessingExceptionMapper.class);
+            resourceConfig.register(ConstraintViolationExceptionMapper.class);
+        }
 
         // add other providers
         resourceConfig.register(new ChannelIdBinder());

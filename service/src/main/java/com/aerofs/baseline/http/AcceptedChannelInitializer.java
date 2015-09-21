@@ -61,7 +61,7 @@ final class AcceptedChannelInitializer extends ChannelInitializer<SocketChannel>
 
     @Override
     public void initChannel(SocketChannel channel) throws Exception {
-        LOGGER.info("{}: setup", Channels.getHexText(channel));
+        LOGGER.trace("{}: setup", Channels.getHexText(channel));
 
         // time how long channels live
         channel.closeFuture().addListener(new GenericFutureListener<Future<Void>>() {

@@ -125,7 +125,7 @@ final class HttpRequestHandler extends ChannelInboundHandlerAdapter implements C
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        LOGGER.debug("{}: set http cleanup handler", Channels.getHexText(ctx));
+        LOGGER.trace("{}: set http cleanup handler", Channels.getHexText(ctx));
         ctx.channel().closeFuture().addListener(future -> cleanup(ctx, future.cause()));
         super.channelRegistered(ctx);
         ctx.read();
@@ -138,7 +138,7 @@ final class HttpRequestHandler extends ChannelInboundHandlerAdapter implements C
     }
 
     private void cleanup(ChannelHandlerContext ctx, Throwable cause) {
-        LOGGER.debug("{}: run http cleanup handler", Channels.getHexText(ctx), cause);
+        LOGGER.trace("{}: run http cleanup handler", Channels.getHexText(ctx), cause);
 
         // we're still waiting for the request to be processed
         // so, destroy the input and output streams associated
@@ -455,12 +455,12 @@ final class HttpRequestHandler extends ChannelInboundHandlerAdapter implements C
 
         @Override
         public void commit() {
-            LOGGER.debug("{}: [{}] done process request", Channels.getHexText(ctx), requestId);
+            LOGGER.trace("{}: [{}] done process request", Channels.getHexText(ctx), requestId);
 
             closeStreams();
 
             if (!keepAlive) {
-                Channels.close(ctx, "not keep-alive connection");
+                Channels.expectedClose(ctx, "not keep-alive connection");
             }
 
             // only after we've done the cleanup do we want to update the metrics

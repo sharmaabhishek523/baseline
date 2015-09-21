@@ -32,6 +32,6 @@ final class IdleTimeoutHandler extends IdleStateHandler {
 
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent evt) throws Exception {
-        Channels.close(ctx, "channel idle timeout");
+        Channels.expectedClose(ctx, "channel idle timeout");
     }
 }

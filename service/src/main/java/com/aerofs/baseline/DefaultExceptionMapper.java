@@ -25,7 +25,7 @@ import javax.ws.rs.core.Response;
 
 @ThreadSafe
 @Singleton
-final class DefaultExceptionMapper extends BaseExceptionMapper<Throwable> {
+public final class DefaultExceptionMapper extends BaseExceptionMapper<Throwable> {
 
     public DefaultExceptionMapper() {
         super(ErrorResponseEntity.NO_STACK_IN_RESPONSE, StackLogging.ENABLE_LOGGING);

@@ -32,7 +32,7 @@ import java.util.Map;
 
 @ThreadSafe
 @Singleton
-final class ConstraintViolationExceptionMapper extends BaseExceptionMapper<ConstraintViolationException> {
+public final class ConstraintViolationExceptionMapper extends BaseExceptionMapper<ConstraintViolationException> {
 
     public ConstraintViolationExceptionMapper() {
         super(ErrorResponseEntity.NO_STACK_IN_RESPONSE, StackLogging.ENABLE_LOGGING);
