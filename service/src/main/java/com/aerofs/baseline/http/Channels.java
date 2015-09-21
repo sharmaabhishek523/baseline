@@ -28,6 +28,11 @@ abstract class Channels {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Channels.class);
 
+    static void expectedClose(ChannelHandlerContext ctx, String logMessage) {
+        LOGGER.trace("{}: close: {}", Channels.getHexText(ctx.channel()), logMessage);
+        ctx.channel().close();
+    }
+
     static void close(ChannelHandlerContext ctx, String logMessage, Object... logObjects) {
         close(ctx.channel(), logMessage, logObjects);
     }
