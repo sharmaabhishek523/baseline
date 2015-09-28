@@ -116,7 +116,7 @@ public abstract class BaseExceptionMapper<T extends Throwable> implements Except
     }
 
     @Nullable
-    private String constructEntity(T throwable) {
+    protected String constructEntity(T throwable) {
         LinkedHashMap<String, Object> errorFields = Maps.newLinkedHashMap();
 
         int errorCode = getErrorCode(throwable);
